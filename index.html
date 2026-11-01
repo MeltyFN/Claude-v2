@@ -647,6 +647,33 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   input[type="date"]::-webkit-date-and-time-value { text-align:left; margin:0; min-height:1.2em; }
   input[type="date"]::-webkit-datetime-edit { padding:0; }
   .grid3 > div { min-width:0; }
+
+  /* note actions: ⋯ menu at the top of a note (nothing at the bottom for floating badges to cover) */
+  .card.c-main { padding-top: 20px; }
+  .note-actions { position:absolute; top:14px; right:14px; display:flex; align-items:center; gap:8px; z-index:1; }
+  .note-actions .saved { white-space:nowrap; }
+  #noteMenuBtn { width:38px; height:38px; padding:0; }
+  .c-main .title-input { padding-right: 150px; }
+  .dd-list li > span { display:inline-flex; align-items:center; gap:10px; }
+  .dd-list li.danger { color: var(--danger); border-top:1px solid var(--line); margin-top:4px; }
+  .dd-list li.danger:hover, .dd-list li.danger.act { background: color-mix(in srgb, var(--danger) 10%, transparent); }
+  /* deck of cards: actions slide down from behind the button */
+  .dd-list.v-deck { --vc: var(--ink); transform-origin: top right; animation: deck-in .35s cubic-bezier(.3,1.3,.5,1); }
+  .v-deck li { animation: deck-card .5s cubic-bezier(.3,1.4,.5,1); }
+  .v-deck.closing { animation: deck-out .28s ease-in forwards; }
+  @keyframes deck-in { from { opacity:0; transform: scale(.85) translateY(-8px); } }
+  @keyframes deck-card { from { opacity:0; transform: translateY(calc(var(--i) * -38px)) scale(.94); } }
+  @keyframes deck-out { to { opacity:0; transform: scale(.9) translateY(-10px); } }
+  .tap-dots svg circle:nth-child(1) { animation: dot-hop .5s ease; } .tap-dots svg circle:nth-child(2) { animation: dot-hop .5s ease .07s; }
+  .tap-dots svg circle:nth-child(3) { animation: dot-hop .5s ease .14s; }
+  @keyframes dot-hop { 40% { transform: translateY(-4px); } }
+  /* room at the bottom so a floating badge or the home bar never sits on top of your notes */
+  main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  @media (max-width: 760px) {
+    .note-actions { top:12px; right:12px; }
+    .note-actions .saved .txt { display:none; }
+    .c-main .title-input { padding-right: 70px; font-size:1.3rem; }
+  }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { animation: none !important; transition: none !important; } }
 
   .menu-btn { display:none; }
@@ -668,7 +695,8 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
     #manageBtn .lbl { display:none; }
     .grid3 { grid-template-columns:1fr; }
     .speaker-row { grid-template-columns:1fr 1fr auto; }
-    main { padding:14px; }
+    main { padding:14px; padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right));
+      padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
     .card { padding:16px; }
   }
   @media print {
@@ -837,6 +865,7 @@ const ICONS = {
   archive: '<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v11h14V9"/><path d="M10 13h4"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   chev: '<path d="M6 9.5l6 6 6-6"/>',
+  dots: '<circle class="fill" cx="5.5" cy="12" r="1.7"/><circle class="fill" cx="12" cy="12" r="1.7"/><circle class="fill" cx="18.5" cy="12" r="1.7"/>',
   contrast: '<circle cx="12" cy="12" r="8.5"/><path class="fill" d="M12 3.5a8.5 8.5 0 0 1 0 17z"/>'
 };
 function ic(name, cls = '') {
@@ -928,7 +957,7 @@ function touch() {
   n.updated = Date.now();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => { persist(); renderList(); renderFilters();
-    const el = $('savedMsg'); if (el) el.innerHTML = ic('check', 'draw-now') + ' Saved ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }, 400);
+    const el = $('savedMsg'); if (el) el.innerHTML = ic('check', 'draw-now') + `<span class="txt"> Saved ${new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span>`; }, 400);
 }
 
 /* ---------- Sidebar ---------- */
@@ -995,6 +1024,10 @@ function renderEditor() {
   const events = [...new Set([...state.eventTypes, n.eventType].filter(Boolean))];
   $('editor').innerHTML = `
     <div class="card c-main">
+      <div class="note-actions no-print">
+        <span class="saved" id="savedMsg"></span>
+        <button id="noteMenuBtn" class="icon" aria-haspopup="menu" aria-expanded="false" aria-label="Note actions: print, copy, duplicate, delete" title="Print, copy, duplicate or delete">${ic('dots')}</button>
+      </div>
       <input class="title-input" data-f="title" placeholder="Sermon title…" value="${esc(n.title)}">
       <div class="grid3" style="margin-top:12px">
         <div><label>Date</label><input type="date" data-f="date" value="${esc(n.date)}"></div>
@@ -1077,15 +1110,7 @@ function renderEditor() {
       <h2><span class="badge">${ic('candle')}</span>Prayer Points</h2>
       <textarea data-f="prayer" placeholder="Prayer requests & points">${esc(n.prayer)}</textarea>
     </div>
-
-    <div class="toolbar no-print">
-      <button onclick="window.print()">${ic('print')}Print / PDF</button>
-      <button id="copyBtn">${ic('copy')}Copy as text</button>
-      <button id="dupBtn">${ic('layers')}Duplicate</button>
-      <button class="danger" id="delBtn">${ic('trash')}Delete note</button>
-      <span class="spacer" style="flex:1"></span>
-      <span class="saved" id="savedMsg"></span>
-    </div>`;
+`;
   autosize(); renderSumExtras(); updateRecUI(); enhanceSelects();
 }
 
@@ -1159,21 +1184,38 @@ ed.addEventListener('click', e => {
     if (j >= 0 && j < n.sections.length) { [n.sections[i], n.sections[j]] = [n.sections[j], n.sections[i]]; touch(); renderEditor();
       flash(`.section[data-i="${j}"]`); }
   }
-  else if (b.id === 'delBtn') {
-    if (confirm('Delete this note permanently?')) fallAway(() => {
+  else if (b.id === 'noteMenuBtn') { PANEL && PANEL.anchor === b ? closePanel() : openNoteMenu(b); }
+});
+
+/* ---------- note actions (the ⋯ menu at the top of a note) ---------- */
+const NOTE_ACTIONS = [
+  { label: 'Print / PDF', value: 'print', icon: 'print' },
+  { label: 'Copy as text', value: 'copy', icon: 'copy' },
+  { label: 'Duplicate', value: 'duplicate', icon: 'layers' },
+  { label: 'Delete note', value: 'delete', icon: 'trash' }];
+function openNoteMenu(btn) {
+  btn.setAttribute('aria-expanded', 'true');
+  openPanel(btn, NOTE_ACTIONS, 'deck', it => noteAction(it.value));
+}
+function noteAction(what) {
+  const n = current(); if (!n) return;
+  if (what === 'print') setTimeout(() => window.print(), 250);
+  else if (what === 'copy') {
+    (navigator.clipboard ? navigator.clipboard.writeText(noteToText(n)) : Promise.reject())
+      .then(() => toast('Copied the note as text.', 2200), () => toast('Your browser blocked copying. Try Print / PDF instead.', 4000));
+  }
+  else if (what === 'duplicate') {
+    const copy = JSON.parse(JSON.stringify(n)); copy.id = uid(); copy.title = (n.title || 'Untitled') + ' (copy)';
+    state.notes.unshift(copy); currentId = copy.id; justAdded = copy.id; persist(); render(); justAdded = null;
+    toast('Duplicated. You’re now editing the copy.', 2600);
+  }
+  else if (what === 'delete') {
+    if (confirm(`Delete “${n.title || 'Untitled sermon'}” permanently?`)) fallAway(() => {
       state.notes = state.notes.filter(x => x.id !== n.id); currentId = state.notes[0]?.id || null; persist(); render();
+      toast('Note deleted.', 2200);
     });
   }
-  else if (b.id === 'dupBtn') {
-    const copy = JSON.parse(JSON.stringify(n)); copy.id = uid(); copy.title = (n.title || 'Untitled') + ' (copy)';
-    state.notes.unshift(copy); currentId = copy.id; persist(); render();
-  }
-  else if (b.id === 'copyBtn') {
-    const done = msg => { b.innerHTML = msg; setTimeout(() => b.innerHTML = ic('copy') + 'Copy as text', 1600); };
-    (navigator.clipboard ? navigator.clipboard.writeText(noteToText(n)) : Promise.reject())
-      .then(() => done(ic('check', 'draw-now') + 'Copied'), () => done(ic('x') + 'Copy blocked'));
-  }
-});
+}
 
 function noteToText(n) {
   const lines = [n.title || 'Untitled sermon', `${fmtDate(n.date)} (${n.period}) — ${n.eventType}${n.location ? ' @ ' + n.location : ''}`];
@@ -1851,8 +1893,8 @@ function openPanel(anchor, items, variant, onPick, selected = -1, quick = false)
   el.className = `dd-list v-${variant}${quick || reuse ? ' quick' : ''}`;
   el.setAttribute('role', 'listbox');
   el.innerHTML = items.map((it, i) => `<li role="option" id="ddo-${i}" data-i="${i}" style="--i:${Math.min(i, 12)}"
-      class="${i === selected ? 'sel' : ''}${it.value === '__new' ? ' add' : ''}" aria-selected="${i === selected}">
-      <span>${esc(it.label)}</span>${i === selected ? ic('check', 'draw-now') : ''}</li>`).join('');
+      class="${i === selected ? 'sel' : ''}${it.value === '__new' ? ' add' : ''}${it.value === 'delete' ? ' danger' : ''}" aria-selected="${i === selected}">
+      <span>${it.icon ? ic(it.icon) : ''}${esc(it.label)}</span>${i === selected ? ic('check', 'draw-now') : ''}</li>`).join('');
   if (!reuse) document.body.appendChild(el);
   PANEL = { el, anchor, items, active: selected, onPick, variant };
   placePanel(); setActive(selected);
@@ -1864,6 +1906,7 @@ function placePanel() {
   const r = PANEL.anchor.getBoundingClientRect(), el = PANEL.el;
   el.style.left = Math.max(8, Math.min(r.left, innerWidth - Math.max(r.width, 200) - 8)) + 'px';
   el.style.minWidth = Math.max(r.width, 180) + 'px';
+  if (PANEL.anchor.id === 'noteMenuBtn') el.style.left = Math.max(8, r.right - el.offsetWidth) + 'px';   // line up with the button's right edge
   const below = innerHeight - r.bottom - 12, above = r.top - 12, up = below < 220 && above > below;
   el.style.maxHeight = Math.min(330, up ? above : below) + 'px';
   el.style.top = up ? '' : (r.bottom + 6) + 'px';
@@ -1873,6 +1916,7 @@ function placePanel() {
 function closePanel(instant = false) {
   if (!PANEL) return;
   const { el, anchor } = PANEL; PANEL = null;
+  if (anchor.id === 'noteMenuBtn') anchor.setAttribute('aria-expanded', 'false');
   anchor.setAttribute('aria-expanded', 'false'); anchor.removeAttribute('aria-activedescendant');
   anchor.closest('.dd')?.classList.remove('open');
   if (instant || REDUCE) return el.remove();
@@ -1934,15 +1978,16 @@ document.addEventListener('click', e => {
   PANEL && PANEL.anchor === btn ? closePanel() : openSelect(btn);
 });
 document.addEventListener('keydown', e => {
-  const btn = e.target.closest?.('.dd-btn'), inp = e.target.closest?.('[data-s]');
+  const btn = e.target.closest?.('.dd-btn, #noteMenuBtn'), inp = e.target.closest?.('[data-s]');
+  const openBtn = b => b.id === 'noteMenuBtn' ? openNoteMenu(b) : openSelect(b);
   if (!btn && !inp) return;
   const open = PANEL && PANEL.anchor === e.target, n = open ? PANEL.items.length : 0;
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
-    if (!open) return btn ? openSelect(btn) : suggest(inp, true);
+    if (!open) return btn ? openBtn(btn) : suggest(inp, true);
     setActive((PANEL.active + (e.key === 'ArrowDown' ? 1 : -1) + n) % n);
   } else if ((e.key === 'Enter' || (btn && e.key === ' ')) && open && PANEL.active >= 0) { e.preventDefault(); pickPanel(PANEL.active); }
-  else if (btn && (e.key === 'Enter' || e.key === ' ') && !open) { e.preventDefault(); openSelect(btn); }
+  else if (btn && (e.key === 'Enter' || e.key === ' ') && !open) { e.preventDefault(); openBtn(btn); }
   else if (e.key === 'Escape' && open) { e.preventDefault(); closePanel(); }
   else if (e.key === 'Tab' && open) closePanel(true);
 });
@@ -1983,11 +2028,8 @@ const TAPS = [
   ['[data-del-speaker]', null, 'tap-spin-out'],
   ['[data-del-section]', null, 'tap-shake'],
   ['#addRefs', null, 'tap-bookmark'],
-  ['#copyBtn', () => $('copyBtn'), 'tap-copy'],
-  ['#dupBtn', () => $('dupBtn'), 'tap-layers'],
-  ['#delBtn', null, 'tap-trash'],
-  ['button[onclick*="print"]', null, 'tap-print'],
   ['#addSpeakerBtn, #addEventBtn', null, 'tap-stamp'],
+  ['#noteMenuBtn', () => $('noteMenuBtn'), 'tap-dots'],
   ['#exportBtn', null, 'tap-drop'],
   ['#importBtn', null, 'tap-lift'],
   ['[data-rm]', null, 'tap-flick'],
