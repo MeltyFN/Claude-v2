@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sermon Notes</title>
 <!-- home screen / app icon -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -567,6 +567,67 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   #pocket.stopped .pk-eq i { animation:none; transform: scaleY(.25); }
   #pocket .pk-hold { position:fixed; left:0; bottom:0; height:3px; width:0; background:#5A6070; }
   #pocket.holding .pk-hold { width:100%; transition: width .9s linear; }
+
+  /* ---------- iPhone screen edges (notch, home bar, landscape) ---------- */
+  header { padding-top: calc(12px + env(safe-area-inset-top)); padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+  main { padding-bottom: calc(26px + env(safe-area-inset-bottom)); padding-left: max(26px, env(safe-area-inset-left)); padding-right: max(26px, env(safe-area-inset-right)); }
+  #noteList { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(22px + env(safe-area-inset-bottom)); }
+  .layout { padding-left: env(safe-area-inset-left); }
+  #pocket { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+
+  /* ---------- centered layouts on phones ---------- */
+  @media (max-width: 760px) {
+    header { padding-top: calc(10px + env(safe-area-inset-top)); padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+    main { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+    .layout { padding-left:0; }
+    /* dictation controls: buttons share the row evenly, status and options centered under them */
+    .c-dict > .toolbar { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .c-dict > .toolbar > .rec-btn { grid-column: 1 / -1; width:100%; }
+    .c-dict > .toolbar > .rec-btn.recording { grid-column: auto; }
+    .c-dict > .toolbar > .pocket-btn { width:100%; }
+    .c-dict > .toolbar > #recStatus { grid-column: 1 / -1; justify-self:center; text-align:center; }
+    .c-dict > .toolbar > #recStatus:empty { display:none; }
+    .c-dict > .toolbar > span[style*="flex:1"] { display:none; }
+    .c-dict > .toolbar > .checks { grid-column: 1 / -1; justify-self:center; }
+    /* bottom actions: an even 2 × 2 grid with the save status centered underneath */
+    #editor > .toolbar { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    #editor > .toolbar > button { width:100%; }
+    #editor > .toolbar > .spacer { display:none; }
+    #editor > .toolbar > #savedMsg { grid-column: 1 / -1; text-align:center; }
+    .sum-head { gap:12px; }
+    dialog { margin:auto; }
+  }
+
+  /* ---------- live island (Dynamic-Island-style dictation status) ---------- */
+  #island { position:fixed; z-index:85; left:50%; top: calc(var(--header-h, 60px) + 10px); transform: translateX(-50%);
+    width:176px; height:40px; border-radius:20px; background:#14161C; color:#FAF9F6; overflow:hidden; cursor:pointer;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06) inset;
+    transition: width .5s cubic-bezier(.3,1.35,.5,1), height .5s cubic-bezier(.3,1.35,.5,1), border-radius .5s, opacity .3s;
+    animation: is-in .55s cubic-bezier(.3,1.5,.5,1); -webkit-tap-highlight-color: transparent; user-select:none; }
+  @keyframes is-in { from { width:40px; opacity:0; } }
+  #island.leaving { width:40px; opacity:0; }
+  #island.flash { width: min(92vw, 310px); }
+  #island.open { width: min(92vw, 360px); height:150px; border-radius:28px; cursor:default; }
+  #island .is-row, #island .is-flash { position:absolute; left:0; right:0; top:0; height:40px; display:flex; align-items:center;
+    justify-content:center; gap:10px; padding:0 16px; font: 600 .86rem "Inter", system-ui, sans-serif; transition: opacity .25s; }
+  #island .is-flash { opacity:0; justify-content:center; white-space:nowrap; }
+  #island .is-flash svg.ic { width:1.1em; height:1.1em; flex:none; }
+  #island.flash .is-row { opacity:0; } #island.flash .is-flash { opacity:1; }
+  #island .is-time { font-variant-numeric: tabular-nums; letter-spacing:.02em; }
+  #island .is-dot { width:8px; height:8px; border-radius:50%; background:#e5484d; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 50% { opacity:.3; } }
+  #island .is-eq { display:inline-flex; align-items:center; gap:3px; height:16px; }
+  #island .is-eq i { width:3px; height:100%; border-radius:3px; background:#E6E8EE; animation: wave 1s ease-in-out infinite; }
+  #island .is-eq i:nth-child(2) { animation-delay:-.25s; } #island .is-eq i:nth-child(3) { animation-delay:-.5s; }
+  #island .is-eq i:nth-child(4) { animation-delay:-.15s; } #island .is-eq i:nth-child(5) { animation-delay:-.4s; }
+  #island .is-more { position:absolute; left:0; right:0; top:40px; padding:0 18px 14px; opacity:0; transition: opacity .25s .1s; pointer-events:none; }
+  #island.open .is-more { opacity:1; pointer-events:auto; }
+  #island .is-words { font-size:.85rem; line-height:1.45; color:#c9ccd6; text-align:center; height:2.9em; overflow:hidden;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  #island .is-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  #island .is-actions button { background:#2a2d36; color:#FAF9F6; border:none; padding:9px; font-size:.85rem; }
+  #island .is-actions button.stop { background:#b3261e; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { animation: none !important; transition: none !important; } }
 
   .menu-btn { display:none; }
@@ -1186,6 +1247,46 @@ function stopDictation(summarize = true) {
 async function keepAwake() {
   try { if (recording && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
 }
+/* ---------- Live island: a Dynamic-Island-style status capsule while dictating ---------- */
+let islandTimer = 0;
+function syncIsland() {
+  let el = $('island');
+  const want = recording && !$('pocket');
+  if (!want) { if (el && !el.classList.contains('leaving')) { el.classList.add('leaving'); setTimeout(() => el.remove(), REDUCE ? 0 : 450); } return; }
+  if (!el || el.classList.contains('leaving')) {
+    el?.remove();
+    el = document.createElement('div'); el.id = 'island'; el.className = 'compact';
+    el.setAttribute('role', 'button'); el.setAttribute('aria-label', 'Dictation status. Tap for controls');
+    el.innerHTML = `<div class="is-row"><span class="is-eq"><i></i><i></i><i></i><i></i><i></i></span><span class="is-time">0:00</span><span class="is-dot"></span></div>
+      <div class="is-flash" aria-live="polite"></div>
+      <div class="is-more"><div class="is-words"></div>
+        <div class="is-actions"><button class="stop" data-is="stop">${ic('stop')}Stop</button><button data-is="pocket">${ic('moon')}Pocket</button></div></div>`;
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-is]');
+      if (b) { e.stopPropagation(); if (b.dataset.is === 'stop') stopDictation(); else { islandMode('compact'); openPocket(); } return; }
+      islandMode(el.classList.contains('open') ? 'compact' : 'open');
+    });
+    document.body.appendChild(el);
+  }
+  const sec = Math.floor((Date.now() - recStart) / 1000);
+  el.querySelector('.is-time').textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  const n = state.notes.find(x => x.id === recNoteId), t = (n?.transcript || '').replace(/\[[^\]]*\]/g, '').trim();
+  el.querySelector('.is-words').textContent = t ? (t.length > 110 ? '…' + t.slice(-110) : t) : 'Listening for the first words…';
+}
+function islandMode(mode) {
+  const el = $('island'); if (!el) return;
+  clearTimeout(islandTimer);
+  el.classList.remove('open', 'flash', 'compact'); el.classList.add(mode);
+  if (mode === 'open') islandTimer = setTimeout(() => islandMode('compact'), 6000);
+}
+// like a Live Activity update: briefly expand to say what just happened
+function islandFlash(icon, text) {
+  const el = $('island'); if (!el || el.classList.contains('open')) return;
+  el.querySelector('.is-flash').innerHTML = ic(icon, 'draw-now') + ' ' + esc(text);
+  islandMode('flash'); islandTimer = setTimeout(() => islandMode('compact'), 2600);
+}
+document.addEventListener('pointerdown', e => { const el = $('island'); if (el?.classList.contains('open') && !el.contains(e.target)) islandMode('compact'); });
+
 /* Pocket mode: a black, touch-proof screen that stays awake so dictation keeps running */
 function openPocket() {
   if ($('pocket')) return;
@@ -1194,7 +1295,7 @@ function openPocket() {
     <div class="pk-time"></div><div class="pk-words"></div>
     <div class="pk-hint">Keep the screen on. Don't press the power button.<br>Double-tap or press and hold to return</div>
     <div class="pk-hold"></div></div>`;
-  document.body.appendChild(el);
+  document.body.appendChild(el); syncIsland();
   document.documentElement.requestFullscreen?.().catch(() => {});
   keepAwake();
   let holdT = 0, lastTap = 0;
@@ -1211,7 +1312,7 @@ function closePocket() {
   const el = $('pocket'); if (!el) return;
   clearInterval(el._drift);
   if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
-  el.classList.add('leaving'); setTimeout(() => el.remove(), REDUCE ? 0 : 350);
+  el.classList.add('leaving'); setTimeout(() => { el.remove(); syncIsland(); }, REDUCE ? 0 : 350);
 }
 function updatePocket() {
   const el = $('pocket'); if (!el) return;
@@ -1235,6 +1336,7 @@ document.addEventListener('visibilitychange', () => {
   try { rec.start(); } catch {}
   const away = fmtDur(Date.now() - since);
   // only say "listening again" once the phone has actually let it restart
+  setTimeout(() => { if (recording) islandFlash('check', 'Listening again'); }, 1300);
   setTimeout(() => { if (recording) toast(`Welcome back. Dictation paused for ${away} while the app was in the background, and is listening again.`, 4500); }, 1200);
 });
 const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -1266,7 +1368,7 @@ function appendTranscript(text) {
 function updateRecUI() {
   const btn = $('recBtn'), st = $('recStatus');
   if ($('pocketBtn')) $('pocketBtn').hidden = !recording;
-  updatePocket();
+  updatePocket(); syncIsland();
   if (btn && btn.dataset.state !== String(recording)) {
     btn.dataset.state = String(recording);
     btn.classList.toggle('recording', recording);
@@ -1587,6 +1689,14 @@ function showFilled(n, changed) {
     actions: ['[data-f="actions"]', 'flag', 'Action step'], title: ['.title-input', 'quill', 'Title'], speakers: ['.c-speak', 'lectern', 'Speaker'],
     'sec:quote': [n => `.section[data-i="${n.sections.findIndex(x => /quote/i.test(x.title))}"] textarea`, 'quill', 'Quote'],
     'sec:point': [n => `.section[data-i="${n.sections.findIndex(x => /main point|point/i.test(x.title))}"] textarea`, 'quill', 'Main points'] };
+  const FLASH = { scriptures: ['book', 'Added to Scripture'], prayer: ['candle', 'Prayer point added'], actions: ['flag', 'Action step added'],
+    title: ['quill', 'Title filled in'], speakers: ['lectern', 'Speaker added'], 'sec:quote': ['quill', 'Quote saved'], 'sec:point': ['quill', 'Main points added'] };
+  const first = [...changed][0];
+  if (FLASH[first]) {
+    let msg = FLASH[first][1];
+    if (first === 'scriptures') { const last = (n.scriptures || '').trim().split('\n').pop().split(' — ')[0]; if (last) msg = `${last} added to Scripture`; }
+    islandFlash(FLASH[first][0], msg);
+  }
   let k = 0;
   changed.forEach(key => {
     const [sel, icon, label] = spots[key] || []; if (!sel) return;
