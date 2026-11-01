@@ -547,6 +547,26 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   .tap-themeflip svg { animation: themeflip .7s cubic-bezier(.3,1.4,.5,1); }
   @keyframes themeflip { from { transform: rotate(-200deg) scale(.4); } }
   html.theme-fade, html.theme-fade * { transition: background-color .45s, color .45s, border-color .45s, box-shadow .45s !important; }
+
+  /* pocket mode */
+  .pocket-btn { background: var(--solid); }
+  .pocket-btn[hidden] { display:none; }
+  #pocket { position:fixed; inset:0; z-index:200; background:#000; color:#5A6070; display:grid; place-items:center;
+    touch-action:none; user-select:none; -webkit-user-select:none; cursor:none; animation: pk-in .5s ease; }
+  #pocket.leaving { animation: pk-out .35s ease forwards; }
+  @keyframes pk-in { from { opacity:0; } } @keyframes pk-out { to { opacity:0; } }
+  #pocket .pk-inner { text-align:center; padding:24px; max-width:420px; transition: transform 3s ease; }
+  #pocket .pk-time { font: 600 1rem "Inter", system-ui, sans-serif; letter-spacing:.04em; color:#5A6070; margin:14px 0 10px; }
+  #pocket .pk-words { font-size:.95rem; line-height:1.5; color:#3a3e48; min-height:3em; }
+  #pocket .pk-hint { margin-top:28px; font-size:.75rem; color:#2c2f37; line-height:1.6; }
+  #pocket.stopped .pk-time { color:#b3261e; }
+  #pocket .pk-eq { display:inline-flex; gap:4px; height:22px; align-items:center; }
+  #pocket .pk-eq i { width:4px; height:100%; border-radius:4px; background:#3a3e48; animation: wave 1.1s ease-in-out infinite; }
+  #pocket .pk-eq i:nth-child(2) { animation-delay:-.3s; } #pocket .pk-eq i:nth-child(3) { animation-delay:-.6s; }
+  #pocket .pk-eq i:nth-child(4) { animation-delay:-.15s; } #pocket .pk-eq i:nth-child(5) { animation-delay:-.45s; }
+  #pocket.stopped .pk-eq i { animation:none; transform: scaleY(.25); }
+  #pocket .pk-hold { position:fixed; left:0; bottom:0; height:3px; width:0; background:#5A6070; }
+  #pocket.holding .pk-hold { width:100%; transition: width .9s linear; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { animation: none !important; transition: none !important; } }
 
   .menu-btn { display:none; }
@@ -918,6 +938,7 @@ function renderEditor() {
       ${SR ? `
       <div class="toolbar no-print" style="align-items:center">
         <button id="recBtn" class="rec-btn ${recording ? 'recording' : ''}"></button>
+        <button id="pocketBtn" class="pocket-btn" ${recording ? '' : 'hidden'} title="Black screen that keeps dictating">${ic('moon')}Pocket mode</button>
         <span id="recStatus" class="saved"></span>
         <span style="flex:1"></span>
         <span class="checks">
@@ -1022,6 +1043,7 @@ ed.addEventListener('click', e => {
   const n = current(); if (!n) return;
   const b = e.target.closest('button'); if (!b) return;
   if (b.id === 'recBtn') { recording ? stopDictation() : startDictation(); }
+  else if (b.id === 'pocketBtn') openPocket();
   else if (b.id === 'sumBtn') {
     if (!(n.transcript || '').trim()) { recMsg = 'Nothing to summarize yet. Dictate, type or paste a transcript first.'; updateRecUI(); }
     else {
@@ -1107,6 +1129,11 @@ function startDictation() {
     const el = $('interim'); if (el) el.textContent = interim;
   };
   r.onerror = e => {
+    // coming back from the background, some phones refuse to restart without a tap: pause instead of failing
+    if (e.error === 'not-allowed' && resumingAt && Date.now() - resumingAt < 3000) {
+      resumingAt = 0; recMsg = 'Dictation paused while your screen was off. Tap Start dictation to keep going.';
+      stopDictation(false); return;
+    }
     const fatal = { 'not-allowed': 'Microphone access was blocked. Allow mic access for this site and try again.',
       'service-not-allowed': 'Speech recognition is not allowed in this browser.',
       'audio-capture': 'No microphone was found.' }[e.error];
@@ -1117,6 +1144,7 @@ function startDictation() {
   r.onend = () => {
     if (rec !== r) return;
     let problem = '';
+    if (recording && document.visibilityState === 'hidden') { bgSince ||= Date.now(); return; }   // wait until the app is back
     if (recording) {
       // the browser stops listening after pauses; start again, but give up if it keeps failing right away
       quickFails = Date.now() - lastStart < 2000 ? quickFails + 1 : 0;
@@ -1158,7 +1186,65 @@ function stopDictation(summarize = true) {
 async function keepAwake() {
   try { if (recording && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
 }
-document.addEventListener('visibilitychange', () => { if (recording && document.visibilityState === 'visible') keepAwake(); });
+/* Pocket mode: a black, touch-proof screen that stays awake so dictation keeps running */
+function openPocket() {
+  if ($('pocket')) return;
+  const el = document.createElement('div'); el.id = 'pocket'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Pocket mode');
+  el.innerHTML = `<div class="pk-inner"><div class="pk-eq"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="pk-time"></div><div class="pk-words"></div>
+    <div class="pk-hint">Keep the screen on. Don't press the power button.<br>Double-tap or press and hold to return</div>
+    <div class="pk-hold"></div></div>`;
+  document.body.appendChild(el);
+  document.documentElement.requestFullscreen?.().catch(() => {});
+  keepAwake();
+  let holdT = 0, lastTap = 0;
+  const exit = () => closePocket();
+  el.addEventListener('pointerdown', e => { e.preventDefault(); el.classList.add('holding'); holdT = setTimeout(exit, 900); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => el.addEventListener(t, () => { el.classList.remove('holding'); clearTimeout(holdT); }));
+  el.addEventListener('click', () => { const now = Date.now(); if (now - lastTap < 400) exit(); lastTap = now; });
+  el.addEventListener('contextmenu', e => e.preventDefault());
+  // move the text slowly so nothing burns into the screen
+  el._drift = setInterval(() => { el.querySelector('.pk-inner').style.transform = `translate(${(Math.random() - .5) * 60}px, ${(Math.random() - .5) * 120}px)`; }, 20000);
+  updatePocket();
+}
+function closePocket() {
+  const el = $('pocket'); if (!el) return;
+  clearInterval(el._drift);
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  el.classList.add('leaving'); setTimeout(() => el.remove(), REDUCE ? 0 : 350);
+}
+function updatePocket() {
+  const el = $('pocket'); if (!el) return;
+  const sec = Math.floor((Date.now() - recStart) / 1000);
+  el.classList.toggle('stopped', !recording);
+  el.querySelector('.pk-time').textContent = recording ? `Listening · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : 'Dictation stopped';
+  const n = state.notes.find(x => x.id === recNoteId), t = (n?.transcript || '').replace(/\[[^\]]*\]/g, '').trim();
+  el.querySelector('.pk-words').textContent = recording ? (t.length > 90 ? '…' + t.slice(-90) : t) : (recMsg.replace(/<[^>]+>/g, '') || 'Double-tap to return');
+}
+
+let bgSince = 0, resumingAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') { if (recording) bgSince ||= Date.now(); return; }
+  if (!recording) return;
+  keepAwake();
+  const since = bgSince; bgSince = 0;
+  if (!since || Date.now() - since < 1500) return;          // a quick glance away: nothing was missed
+  markGap(since, Date.now());
+  // restart listening (it was stopped by the phone while the app was hidden)
+  quickFails = 0; lastErr = ''; resumingAt = lastStart = Date.now(); newPara = true;
+  try { rec.start(); } catch {}
+  const away = fmtDur(Date.now() - since);
+  // only say "listening again" once the phone has actually let it restart
+  setTimeout(() => { if (recording) toast(`Welcome back. Dictation paused for ${away} while the app was in the background, and is listening again.`, 4500); }, 1200);
+});
+const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const fmtDur = ms => { const m = Math.round(ms / 60000); return m < 1 ? `${Math.round(ms / 1000)} seconds` : `${m} minute${m > 1 ? 's' : ''}`; };
+function markGap(a, b) {
+  const n = state.notes.find(x => x.id === recNoteId); if (!n) return;
+  n.transcript = (n.transcript || '').trimEnd() + `\n\n[Dictation paused ${fmtTime(a)} – ${fmtTime(b)} while the app was in the background]`;
+  if (n.id === currentId) { const ta = document.querySelector('[data-f="transcript"]'); if (ta) { ta.value = n.transcript; grow(ta); } }
+  touch();
+}
 
 function appendTranscript(text) {
   const n = state.notes.find(x => x.id === recNoteId); if (!n) return;
@@ -1179,6 +1265,8 @@ function appendTranscript(text) {
 
 function updateRecUI() {
   const btn = $('recBtn'), st = $('recStatus');
+  if ($('pocketBtn')) $('pocketBtn').hidden = !recording;
+  updatePocket();
   if (btn && btn.dataset.state !== String(recording)) {
     btn.dataset.state = String(recording);
     btn.classList.toggle('recording', recording);
@@ -1224,7 +1312,7 @@ function findScriptures(text) {
 
 function splitSentences(text) {
   const out = [];
-  (text.replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+|$)/g) || []).forEach(s => {
+  (text.replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+|$)/g) || []).forEach(s => {
     const w = s.trim().split(' ').filter(Boolean);
     for (let i = 0; i < w.length; i += 30) out.push(w.slice(i, i + 30).join(' ')); // dictation often lacks punctuation
   });
