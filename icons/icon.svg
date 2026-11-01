@@ -1,34 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- same as the app header: sunrise gradient, frosted rounded tile, white cross with round ends -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#9c4a2f"/>
-      <stop offset=".38" stop-color="#c0683f"/>
-      <stop offset=".7" stop-color="#d39a45"/>
+      <stop offset=".3" stop-color="#c0683f"/>
+      <stop offset=".62" stop-color="#d39a45"/>
       <stop offset="1" stop-color="#7d8b4e"/>
     </linearGradient>
-    <radialGradient id="glow" cx=".5" cy=".36" r=".42">
-      <stop offset="0" stop-color="#ffe9b8" stop-opacity=".55"/>
-      <stop offset="1" stop-color="#ffe9b8" stop-opacity="0"/>
-    </radialGradient>
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
-  <circle cx="256" cy="190" r="190" fill="url(#glow)"/>
-  <!-- cross -->
-  <rect x="241" y="104" width="30" height="132" rx="10" fill="#fffcf6"/>
-  <rect x="200" y="140" width="112" height="28" rx="10" fill="#fffcf6"/>
-  <!-- open book -->
-  <path d="M256 290 C 222 266, 176 260, 130 268 L 130 380 C 176 372, 222 378, 256 402 Z" fill="#fffcf6"/>
-  <path d="M256 290 C 290 266, 336 260, 382 268 L 382 380 C 336 372, 290 378, 256 402 Z" fill="#f4e6cf"/>
-  <path d="M256 290 L 256 402" stroke="#b5523b" stroke-width="6" stroke-linecap="round"/>
-  <!-- page lines -->
-  <g stroke="#d9b98f" stroke-width="7" stroke-linecap="round" fill="none">
-    <path d="M154 300 C 180 296, 206 298, 232 306"/>
-    <path d="M154 326 C 180 322, 206 324, 232 332"/>
-    <path d="M154 352 C 180 348, 206 350, 232 358"/>
-    <path d="M280 306 C 306 298, 332 296, 358 300"/>
-    <path d="M280 332 C 306 324, 332 322, 358 326"/>
+  <rect x="86" y="86" width="340" height="340" rx="113" fill="#fff" fill-opacity=".25"/>
+  <g stroke="#fff" stroke-width="19" stroke-linecap="round" fill="none">
+    <path d="M256 173.7V338.3"/>
+    <path d="M208.3 221.3H303.7"/>
   </g>
-  <!-- leaf -->
-  <path d="M340 352 C 352 324, 380 316, 396 320 C 392 340, 372 362, 340 352 Z" fill="#6f8b62"/>
-  <path d="M342 350 L 380 326" stroke="#fffcf6" stroke-width="3" stroke-linecap="round" opacity=".7"/>
 </svg>
