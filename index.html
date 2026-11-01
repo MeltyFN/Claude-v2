@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sermon Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6efe4; --panel: #fffcf6; --ink: #3a2e24; --muted: #8a7965;
+    --line: #e8dccb; --field: #fbf6ee; --danger: #b23a2a;
+    --sunrise: linear-gradient(120deg, #9c4a2f 0%, #c0683f 30%, #d39a45 62%, #7d8b4e 100%);
+    --brand: #b5523b; --brand2: #c98a3a;
+    --radius: 18px; --shadow: 0 6px 24px -10px rgba(95, 62, 30, .28);
+    --c: #b5523b; color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1c1712; --panel:#28211a; --ink:#f2e9dc; --muted:#b4a38d;
+      --line:#3e3328; --field:#221c16; --danger:#e27a62; --shadow: 0 6px 24px -10px rgba(0,0,0,.6); }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink); background: var(--bg);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(211,154,69,.14), transparent 40%),
+      radial-gradient(circle at 90% 10%, rgba(125,139,78,.13), transparent 40%),
+      radial-gradient(circle at 70% 90%, rgba(181,82,59,.10), transparent 45%);
+    background-attachment: fixed; }
+  h1, h2, h3, .title-input { font-family: "Fredoka", "Nunito", system-ui, sans-serif; }
+
+  header { display:flex; align-items:center; gap:10px; padding:12px 20px; background: var(--sunrise);
+    color:#fff; position:sticky; top:0; z-index:5; box-shadow: 0 4px 20px -6px rgba(140,70,35,.45); }
+  header h1 { font-size:1.45rem; margin:0; letter-spacing:.01em; display:flex; align-items:center; gap:8px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.15); }
+  header h1 .logo { display:grid; place-items:center; width:36px; height:36px; border-radius:12px;
+    background: rgba(255,255,255,.25); font-size:1.15rem; }
+  header .spacer { flex:1; }
+  header button { background: rgba(255,255,255,.2); color:#fff; border-color: rgba(255,255,255,.45); }
+  header button:hover { background: rgba(255,255,255,.32); border-color:#fff; }
+  header button.primary { background:#fffcf6; color:#9c4a2f; border-color:#fffcf6; }
+  header button.primary:hover { background:#fff; }
+
+  button { white-space:nowrap; font:inherit; font-weight:700; cursor:pointer; border:2px solid var(--line); background:var(--panel);
+    color:var(--ink); border-radius:999px; padding:7px 15px; transition: transform .15s, box-shadow .15s, background .15s; }
+  button:hover { border-color: var(--c); transform: translateY(-1px); }
+  button:active { transform: translateY(1px) scale(.98); }
+  button.primary { background: linear-gradient(120deg, var(--brand2), var(--brand)); color:#fff; border-color:transparent;
+    box-shadow: 0 6px 16px -6px rgba(181,82,59,.55); }
+  button.danger { color:var(--danger); }
+  button.icon { padding:4px 10px; }
+  input, select, textarea { font:inherit; color:var(--ink); background:var(--field);
+    border:2px solid var(--line); border-radius:12px; padding:9px 12px; width:100%; transition: border-color .15s, box-shadow .15s; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color: var(--c);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
+  textarea { resize:vertical; min-height:80px; line-height:1.55; }
+  label { font-size:.75rem; color:var(--muted); font-weight:800; text-transform:uppercase;
+    letter-spacing:.06em; display:block; margin-bottom:6px; }
+
+  .layout { display:grid; grid-template-columns: 320px 1fr; height: calc(100vh - 60px); }
+  aside { overflow:auto; background: color-mix(in srgb, var(--panel) 85%, transparent);
+    border-right:2px solid var(--line); backdrop-filter: blur(6px); }
+  .filters { padding:14px; display:grid; gap:8px; border-bottom:2px solid var(--line);
+    position:sticky; top:0; background:var(--panel); z-index:1; --c: var(--brand); }
+  .filters .row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  #noteList { padding:10px; display:grid; gap:8px; }
+  .note-item { --h: 280; padding:12px 14px; cursor:pointer; border-radius:14px; background:var(--panel);
+    border:2px solid var(--line); border-left:6px solid hsl(var(--h) 40% 50%); transition: transform .15s, box-shadow .15s; }
+  .note-item:hover { transform: translateX(3px); box-shadow: var(--shadow); }
+  .note-item.active { border-color: hsl(var(--h) 40% 50%); background: hsl(var(--h) 40% 95%);
+    box-shadow: 0 6px 18px -8px hsl(var(--h) 40% 35% / .5); }
+  .note-item .t { font-weight:800; margin-bottom:5px; }
+  .note-item .m { font-size:.8rem; color:var(--muted); margin-top:3px; }
+  .tag { --h: 280; display:inline-block; font-size:.72rem; font-weight:800; padding:2px 9px; border-radius:999px;
+    background: hsl(var(--h) 38% 89%); color: hsl(var(--h) 45% 28%); }
+  .pill-ampm { display:inline-block; font-size:.72rem; font-weight:800; padding:2px 8px; border-radius:999px; margin-right:4px; }
+  .pill-ampm.am { background:#f4e3bd; color:#87560f; }
+  .pill-ampm.pm { background:#dfe3e6; color:#3e4c5e; }
+  @media (prefers-color-scheme: dark) {
+    .note-item.active { background: hsl(var(--h) 22% 18%); }
+    .tag { background: hsl(var(--h) 25% 23%); color: hsl(var(--h) 50% 78%); }
+    .pill-ampm.am { background:#47361a; color:#e9c27a; }
+    .pill-ampm.pm { background:#2c3540; color:#b9c6d3; }
+  }
+  .empty { padding:30px; text-align:center; color:var(--muted); }
+
+  main { overflow:auto; padding:26px; }
+  .editor { max-width: 880px; margin:0 auto; display:grid; gap:20px; }
+  .card { --c: #b5523b; background:var(--panel); border:2px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; box-shadow: var(--shadow); position:relative; overflow:hidden; }
+  .editor.anim .card { animation: pop .4s ease both; }
+  .editor.anim .card:nth-child(2) { animation-delay: .04s; } .editor.anim .card:nth-child(3) { animation-delay: .08s; }
+  .editor.anim .card:nth-child(4) { animation-delay: .12s; } .editor.anim .card:nth-child(5) { animation-delay: .16s; }
+  .editor.anim .card:nth-child(n+6) { animation-delay: .2s; }
+  .card::before { content:""; position:absolute; inset:0 0 auto 0; height:5px; background: var(--c); }
+  .card h2 { font-size:1.15rem; font-weight:600; margin:2px 0 14px; display:flex; align-items:center; gap:10px; }
+  .card h2 .badge { display:grid; place-items:center; width:36px; height:36px; border-radius:12px; font-size:1.1rem;
+    background: color-mix(in srgb, var(--c) 16%, transparent); }
+  .card h2 .spacer { flex:1; }
+  .card h2 button { font-family: "Nunito", system-ui, sans-serif; font-size:.85rem; color: var(--c); }
+  .card.c-main { --c: #b5523b; } .card.c-main::before { background: var(--sunrise); height:7px; }
+  .card.c-dict { --c: #b5523b; } .card.c-speak { --c: #a86f5c; } .card.c-scrip { --c: #557487; }
+  .card.c-notes { --c: #6f8b62; } .card.c-act { --c: #7d8b3a; } .card.c-pray { --c: #c58a2c; }
+  @keyframes pop { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  .title-input { font-size:1.8rem; font-weight:600; border:none !important; box-shadow:none !important;
+    background:transparent; padding:4px 0; }
+  .title-input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+  .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; }
+  .seg { display:flex; gap:6px; background:var(--field); border:2px solid var(--line); border-radius:999px; padding:4px; }
+  .seg button { flex:1; border:none; padding:6px; background:transparent; }
+  .seg button:hover { transform:none; background: color-mix(in srgb, var(--c) 10%, transparent); }
+  .seg button.on[data-p="AM"] { background: linear-gradient(120deg, #e6c06a, #cf8a3e); color:#3e2408; box-shadow: 0 4px 12px -4px rgba(207,138,62,.7); }
+  .seg button.on[data-p="PM"] { background: linear-gradient(120deg, #4c5d70, #6e5a63); color:#fff; box-shadow: 0 4px 12px -4px rgba(76,93,112,.7); }
+
+  .speaker-row { display:grid; grid-template-columns: 1.4fr 1fr auto; gap:8px; margin-bottom:8px; }
+  .section { border:2px dashed color-mix(in srgb, var(--c) 35%, var(--line)); border-radius:14px; padding:12px; margin-bottom:12px;
+    background: color-mix(in srgb, var(--c) 4%, transparent); }
+  .section-head { display:flex; gap:8px; margin-bottom:8px; }
+  .section-head input { font-weight:800; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .saved { font-size:.82rem; color:var(--muted); font-weight:600; }
+
+  dialog { border:none; border-radius:var(--radius); background:var(--panel); --c: var(--brand);
+    color:var(--ink); max-width:480px; width:92%; box-shadow: 0 20px 60px -10px rgba(0,0,0,.4); padding:22px; }
+  dialog h3 { margin:6px 0 10px; }
+  dialog::backdrop { background: rgba(45, 28, 12, .45); backdrop-filter: blur(3px); }
+  .list-edit li { display:flex; justify-content:space-between; align-items:center; padding:7px 0;
+    border-bottom:1px solid var(--line); }
+  .list-edit { list-style:none; padding:0; margin:0 0 10px; }
+  .add-row { display:flex; gap:8px; }
+
+  .rec-btn { background: linear-gradient(120deg, #9c4a2f, #c98a3a); color:#fff; border-color:transparent; padding:9px 18px;
+    box-shadow: 0 6px 16px -6px rgba(156,74,47,.65); }
+  .rec-btn.recording { background: linear-gradient(120deg, #8f2d1f, #c0582f); animation: glow 1.4s infinite; }
+  @keyframes glow { 0%,100% { box-shadow: 0 0 0 0 rgba(178,58,42,.55); } 50% { box-shadow: 0 0 0 10px rgba(178,58,42,0); } }
+  .rec-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--danger);
+    margin-right:6px; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity:.25; } }
+  #sumBtn { background: linear-gradient(120deg, #ecd39a, #d9b08c); color:#4e3015; border-color:transparent; }
+  .interim:empty { display:none; }
+  .c-dict > label { margin-top:16px; }
+  .interim { color:var(--c); font-style:italic; min-height:1.4em; margin:10px 0; font-weight:600; }
+  .hint { color:var(--muted); font-size:.9rem; margin:0 0 10px; }
+  label.check { text-transform:none; letter-spacing:0; font-weight:600; font-size:.85rem;
+    display:flex; align-items:center; gap:6px; margin:0; }
+  label.check input { width:auto; accent-color: var(--c); }
+  .sum-head { display:flex; align-items:center; gap:8px; margin:16px 0 6px; }
+  .sum-head label { margin:0; flex:1; }
+
+  .welcome { text-align:center; padding:44px 24px; }
+  .welcome .big { font-size:3.4rem; animation: float 3s ease-in-out infinite; }
+  .welcome h2 { justify-content:center; font-size:1.9rem; background: var(--sunrise); -webkit-background-clip:text;
+    background-clip:text; color:transparent; }
+  .welcome p { color:var(--muted); max-width:420px; margin:0 auto 20px; }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+
+  .spark { position:fixed; pointer-events:none; z-index:50; font-size:1.1rem; animation: spark .9s ease-out forwards; }
+  @keyframes spark { to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(.4); opacity:0; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } .spark { display:none; } }
+
+  .menu-btn { display:none; }
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { display:none; }
+    aside.open { display:block; position:fixed; inset:60px 0 0 0; z-index:4; background:var(--bg); }
+    .menu-btn { display:inline-block; }
+    header { padding:10px 12px; }
+    header h1 { font-size:1.15rem; white-space:nowrap; }
+    header button { padding:6px 12px; }
+    #newBtn .lbl { display:none; }
+    header h1 .logo { width:30px; height:30px; }
+    #manageBtn .lbl { display:none; }
+    .grid3 { grid-template-columns:1fr; }
+    .speaker-row { grid-template-columns:1fr 1fr auto; }
+    main { padding:14px; }
+    .card { padding:16px; }
+  }
+  @media print {
+    header, aside, .no-print { display:none !important; }
+    body { background:#fff; }
+    .layout { display:block; height:auto; }
+    main { padding:0; overflow:visible; }
+    .card { border:none; box-shadow:none; padding:6px 0; }
+    .card::before { display:none; }
+    input, select, textarea { border:none; background:transparent; padding:0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <button class="menu-btn icon" id="menuBtn" aria-label="Toggle notes list">☰</button>
+  <h1><span class="logo">✝</span>Sermon Notes</h1>
+  <div class="spacer"></div>
+  <button id="manageBtn" title="Manage saved speakers & event types">⚙<span class="lbl"> Lists</span></button>
+  <button class="primary" id="newBtn">+ New<span class="lbl"> Note</span></button>
+</header>
+
+<div class="layout">
+  <aside id="sidebar">
+    <div class="filters">
+      <input id="search" placeholder="Search notes, scripture, speakers…">
+      <div class="row">
+        <select id="filterEvent"><option value="">All events</option></select>
+        <select id="filterSpeaker"><option value="">All speakers</option></select>
+      </div>
+      <div class="row">
+        <select id="filterPeriod">
+          <option value="">AM &amp; PM</option><option value="AM">AM only</option><option value="PM">PM only</option>
+        </select>
+        <select id="sortBy">
+          <option value="new">Newest first</option><option value="old">Oldest first</option>
+        </select>
+      </div>
+    </div>
+    <div id="noteList"></div>
+  </aside>
+
+  <main>
+    <div id="editor" class="editor"></div>
+  </main>
+</div>
+
+<dialog id="manageDlg">
+  <h3>🎤 Saved Speakers</h3>
+  <ul class="list-edit" id="speakerList"></ul>
+  <div class="add-row"><input id="newSpeaker" placeholder="Add speaker name"><button id="addSpeakerBtn">Add</button></div>
+  <h3>🏷 Event Types</h3>
+  <ul class="list-edit" id="eventList"></ul>
+  <div class="add-row"><input id="newEvent" placeholder="Add event type"><button id="addEventBtn">Add</button></div>
+  <h3>💾 Backup</h3>
+  <div class="toolbar">
+    <button id="exportBtn">⬇ Export all (JSON)</button>
+    <button id="importBtn">⬆ Import</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+  </div>
+  <div style="text-align:right;margin-top:16px"><button class="primary" id="closeManage">Done</button></div>
+</dialog>
+
+<datalist id="speakerOptions"></datalist>
+<datalist id="roleOptions">
+  <option value="Pastor"><option value="Guest Speaker"><option value="Evangelist">
+  <option value="Youth Pastor"><option value="Elder"><option value="Deacon">
+  <option value="Worship Leader"><option value="Minister"><option value="Teacher">
+</datalist>
+
+<script>
+const KEY = 'sermon-notes-v1';
+const DEFAULT_EVENTS = ['Sunday Service','Wednesday Bible Study','Prayer Meeting','Revival',
+  'Conference','Youth Service','Women\'s Ministry','Men\'s Ministry','Special Event','Funeral','Wedding'];
+const DEFAULT_SECTIONS = ['Main Points','Key Quotes','Personal Reflection'];
+
+let state = load();
+let currentId = state.notes[0]?.id || null;
+let saveTimer;
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.notes)) { s.settings ||= { autoSummary: true }; return s; }
+  } catch {}
+  return { notes: [], speakers: [], eventTypes: [...DEFAULT_EVENTS], settings: { autoSummary: true } };
+}
+function persist() { localStorage.setItem(KEY, JSON.stringify(state)); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = id => document.getElementById(id);
+// a cheerful, stable color for each event type
+const HUES = [12, 28, 40, 75, 95, 140, 175, 205, 330, 20, 55];  // clay, ochre, olive, sage, slate…
+const hue = name => { let h = 0; for (const c of name || '') h = (h * 31 + c.charCodeAt(0)) >>> 0; return HUES[h % HUES.length]; };
+function sparkle(el) {
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect(), icons = ['🌿', '🍂', '✨', '🌾', '🌻', '🍃'];
+  for (let i = 0; i < 14; i++) {
+    const sp = document.createElement('span'), a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 60;
+    sp.className = 'spark'; sp.textContent = icons[i % icons.length];
+    sp.style.left = (r.left + r.width / 2) + 'px'; sp.style.top = (r.top + r.height / 2) + 'px';
+    sp.style.setProperty('--dx', Math.cos(a) * d + 'px'); sp.style.setProperty('--dy', Math.sin(a) * d + 'px');
+    sp.style.setProperty('--r', (Math.random() * 360 - 180) + 'deg');
+    document.body.appendChild(sp); setTimeout(() => sp.remove(), 950);
+  }
+}
+const today = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const fmtDate = d => d ? new Date(d + 'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : 'No date';
+
+function newNote() {
+  const note = {
+    id: uid(), title: '', date: today(), period: new Date().getHours() < 12 ? 'AM' : 'PM',
+    eventType: state.eventTypes[0] || '', location: '',
+    speakers: [{ name: '', role: 'Pastor' }],
+    scriptures: '', sections: DEFAULT_SECTIONS.map(t => ({ id: uid(), title: t, body: '' })),
+    actions: '', prayer: '', transcript: '', summary: '', updated: Date.now()
+  };
+  state.notes.unshift(note); currentId = note.id; persist(); render();
+  setTimeout(() => document.querySelector('.title-input')?.focus(), 0);
+}
+
+const current = () => state.notes.find(n => n.id === currentId);
+
+function touch() {
+  const n = current(); if (!n) return;
+  n.updated = Date.now();
+  // remember speaker names for reuse
+  n.speakers.forEach(s => { const nm = s.name.trim(); if (nm && !state.speakers.includes(nm)) state.speakers.push(nm); });
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { persist(); renderList(); renderFilters(); renderDatalist();
+    const el = $('savedMsg'); if (el) el.textContent = 'Saved ✓ ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }, 400);
+}
+
+/* ---------- Sidebar ---------- */
+function renderFilters() {
+  const fe = $('filterEvent'), fs = $('filterSpeaker');
+  const ev = fe.value, sp = fs.value;
+  const events = [...new Set([...state.eventTypes, ...state.notes.map(n => n.eventType).filter(Boolean)])];
+  const speakers = [...new Set(state.notes.flatMap(n => n.speakers.map(s => s.name.trim())).filter(Boolean))].sort();
+  fe.innerHTML = '<option value="">All events</option>' + events.map(e => `<option ${e===ev?'selected':''}>${esc(e)}</option>`).join('');
+  fs.innerHTML = '<option value="">All speakers</option>' + speakers.map(s => `<option ${s===sp?'selected':''}>${esc(s)}</option>`).join('');
+}
+
+function renderList() {
+  const q = $('search').value.toLowerCase().trim();
+  const ev = $('filterEvent').value, sp = $('filterSpeaker').value, pd = $('filterPeriod').value;
+  let notes = state.notes.filter(n => {
+    if (ev && n.eventType !== ev) return false;
+    if (pd && n.period !== pd) return false;
+    if (sp && !n.speakers.some(s => s.name.trim() === sp)) return false;
+    if (q) {
+      const hay = [n.title, n.eventType, n.location, n.scriptures, n.actions, n.prayer, n.transcript, n.summary,
+        ...n.speakers.map(s => s.name + ' ' + s.role), ...n.sections.map(s => s.title + ' ' + s.body)].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const key = n => (n.date || '') + (n.period === 'PM' ? '1' : '0');
+  notes.sort((a, b) => $('sortBy').value === 'old' ? key(a).localeCompare(key(b)) : key(b).localeCompare(key(a)));
+
+  $('noteList').innerHTML = notes.length ? notes.map(n => {
+    const names = n.speakers.map(s => s.name).filter(Boolean).join(', ');
+    return `<div class="note-item ${n.id===currentId?'active':''}" data-id="${n.id}" style="--h:${hue(n.eventType)}">
+      <div class="t">${esc(n.title || 'Untitled sermon')}</div>
+      <div><span class="pill-ampm ${n.period === 'PM' ? 'pm' : 'am'}">${n.period === 'PM' ? '🌙 PM' : '☀ AM'}</span>${n.eventType ? `<span class="tag" style="--h:${hue(n.eventType)}">${esc(n.eventType)}</span>` : ''}</div>
+      <div class="m">📅 ${fmtDate(n.date)}</div>
+      ${names ? `<div class="m">🎤 ${esc(names)}</div>` : ''}
+    </div>`;
+  }).join('') : `<div class="empty">${state.notes.length ? '🔍 No notes match your filters.' : '✨ No notes yet.<br>Tap “+ New Note” to start.'}</div>`;
+}
+
+$('noteList').addEventListener('click', e => {
+  const item = e.target.closest('.note-item'); if (!item) return;
+  currentId = item.dataset.id; render(); $('sidebar').classList.remove('open');
+});
+['search','filterEvent','filterSpeaker','filterPeriod','sortBy'].forEach(id =>
+  $(id).addEventListener('input', renderList));
+
+/* ---------- Editor ---------- */
+let lastShownId;
+function renderEditor() {
+  const n = current();
+  $('editor').classList.toggle('anim', (n && n.id) !== lastShownId);
+  lastShownId = n && n.id;
+  if (!n) {
+    $('editor').innerHTML = `<div class="card c-main welcome"><div class="big">📖🌿</div><h2>Welcome!</h2>
+      <p>Capture every message: speakers, event types, dates, AM/PM services, live dictation and automatic summaries.</p>
+      <button class="primary" onclick="newNote()">+ Start your first note</button></div>`;
+    return;
+  }
+  const events = [...new Set([...state.eventTypes, n.eventType].filter(Boolean))];
+  $('editor').innerHTML = `
+    <div class="card c-main">
+      <input class="title-input" data-f="title" placeholder="Sermon title…" value="${esc(n.title)}">
+      <div class="grid3" style="margin-top:12px">
+        <div><label>Date</label><input type="date" data-f="date" value="${esc(n.date)}"></div>
+        <div><label>Time of Day</label>
+          <div class="seg" id="periodSeg">
+            <button type="button" data-p="AM" class="${n.period==='AM'?'on':''}">☀ AM</button>
+            <button type="button" data-p="PM" class="${n.period==='PM'?'on':''}">🌙 PM</button>
+          </div></div>
+        <div><label>Event Type</label>
+          <select data-f="eventType">
+            ${events.map(e => `<option ${e===n.eventType?'selected':''}>${esc(e)}</option>`).join('')}
+            <option value="__new">+ Add new event type…</option>
+          </select></div>
+      </div>
+      <div style="margin-top:12px"><label>Location / Church</label>
+        <input data-f="location" placeholder="e.g. Grace Fellowship, Main Sanctuary" value="${esc(n.location)}"></div>
+    </div>
+
+    <div class="card c-dict">
+      <h2><span class="badge">🎙</span>Dictation &amp; Summary</h2>
+      ${SR ? `
+      <div class="toolbar no-print" style="align-items:center">
+        <button id="recBtn" class="rec-btn ${recording ? 'recording' : ''}">${recording ? '■ Stop dictation' : '🎙 Start dictation'}</button>
+        <span id="recStatus" class="saved"></span>
+        <span style="flex:1"></span>
+        <label class="check"><input type="checkbox" id="autoSum" ${state.settings.autoSummary ? 'checked' : ''}> Auto-summarize when I stop</label>
+      </div>
+      <div id="interim" class="interim no-print"></div>` : `
+      <p class="hint no-print">Live dictation isn't supported in this browser. Try Chrome, Edge or Safari.
+        You can still type or paste a transcript below and summarize it.</p>`}
+      <label>Transcript</label>
+      <textarea data-f="transcript" placeholder="Your dictated words appear here as the speaker talks…">${esc(n.transcript)}</textarea>
+      <div class="sum-head"><label>Summary</label><button class="no-print" id="sumBtn">✨ Summarize</button></div>
+      <textarea data-f="summary" placeholder="A summary of the transcript is created automatically when you stop dictating.">${esc(n.summary)}</textarea>
+      <div class="toolbar no-print" id="sumExtras" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card c-speak">
+      <h2><span class="badge">🎤</span>Speakers <span class="spacer"></span><button class="no-print" id="addSpeaker">+ Add speaker</button></h2>
+      <div id="speakers">
+        ${n.speakers.map((s, i) => `
+          <div class="speaker-row" data-i="${i}">
+            <input list="speakerOptions" data-s="name" placeholder="Name" value="${esc(s.name)}">
+            <input list="roleOptions" data-s="role" placeholder="Role" value="${esc(s.role)}">
+            <button class="icon danger no-print" data-del-speaker="${i}" title="Remove">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card c-scrip">
+      <h2><span class="badge">📖</span>Scripture References</h2>
+      <textarea data-f="scriptures" style="min-height:60px" placeholder="e.g. John 3:16; Romans 8:28–30">${esc(n.scriptures)}</textarea>
+    </div>
+
+    <div class="card c-notes">
+      <h2><span class="badge">📝</span>Notes <span class="spacer"></span><button class="no-print" id="addSection">+ Add section</button></h2>
+      <div id="sections">
+        ${n.sections.map((s, i) => `
+          <div class="section" data-i="${i}">
+            <div class="section-head">
+              <input data-sec="title" value="${esc(s.title)}" placeholder="Section title">
+              <button class="icon no-print" data-move="${i}:-1" title="Move up">↑</button>
+              <button class="icon no-print" data-move="${i}:1" title="Move down">↓</button>
+              <button class="icon danger no-print" data-del-section="${i}" title="Delete section">✕</button>
+            </div>
+            <textarea data-sec="body" placeholder="Write here…">${esc(s.body)}</textarea>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card c-act">
+      <h2><span class="badge">✅</span>Action Steps / Application</h2>
+      <textarea data-f="actions" placeholder="What will I do this week?">${esc(n.actions)}</textarea>
+    </div>
+    <div class="card c-pray">
+      <h2><span class="badge">🙏</span>Prayer Points</h2>
+      <textarea data-f="prayer" placeholder="Prayer requests & points">${esc(n.prayer)}</textarea>
+    </div>
+
+    <div class="toolbar no-print">
+      <button onclick="window.print()">🖨 Print / PDF</button>
+      <button id="copyBtn">📋 Copy as text</button>
+      <button id="dupBtn">⧉ Duplicate</button>
+      <button class="danger" id="delBtn">🗑 Delete note</button>
+      <span class="spacer" style="flex:1"></span>
+      <span class="saved" id="savedMsg"></span>
+    </div>`;
+  autosize(); renderSumExtras(); updateRecUI();
+}
+
+function autosize() {
+  document.querySelectorAll('#editor textarea').forEach(t => { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; });
+}
+
+const ed = $('editor');
+ed.addEventListener('input', e => {
+  const n = current(); if (!n) return;
+  const t = e.target;
+  if (t.dataset.f && t.dataset.f !== 'eventType') n[t.dataset.f] = t.value;
+  if (t.dataset.f === 'summary') n.summaryEdited = true;
+  if (t.dataset.f === 'transcript' || t.dataset.f === 'scriptures') renderSumExtras();
+  if (t.dataset.s) n.speakers[+t.closest('.speaker-row').dataset.i][t.dataset.s] = t.value;
+  if (t.dataset.sec) n.sections[+t.closest('.section').dataset.i][t.dataset.sec] = t.value;
+  if (t.tagName === 'TEXTAREA') { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; }
+  touch();
+});
+ed.addEventListener('change', e => {
+  const n = current(); const t = e.target;
+  if (t.id === 'autoSum') { state.settings.autoSummary = t.checked; persist(); return; }
+  if (t.dataset.f === 'eventType') {
+    if (t.value === '__new') {
+      const name = prompt('New event type name:')?.trim();
+      if (name) { if (!state.eventTypes.includes(name)) state.eventTypes.push(name); n.eventType = name; }
+      touch(); renderEditor(); return;
+    }
+    n.eventType = t.value; touch();
+  }
+});
+ed.addEventListener('click', e => {
+  const n = current(); if (!n) return;
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'recBtn') { recording ? stopDictation() : startDictation(); }
+  else if (b.id === 'sumBtn') {
+    if (!(n.transcript || '').trim()) { recMsg = 'Nothing to summarize yet. Dictate, type or paste a transcript first.'; updateRecUI(); }
+    else if (!n.summaryEdited || !(n.summary || '').trim() || confirm('Replace your edited summary with a new one?')) makeSummary(n);
+  }
+  else if (b.id === 'addRefs') {
+    const missing = missingRefs(n);
+    n.scriptures = ((n.scriptures || '').trim() ? n.scriptures.trim() + '; ' : '') + missing.join('; ');
+    touch(); renderEditor();
+  }
+  else if (b.dataset.p) { n.period = b.dataset.p; touch(); renderEditor(); }
+  else if (b.id === 'addSpeaker') { n.speakers.push({ name:'', role:'' }); touch(); renderEditor();
+    document.querySelector(`.speaker-row:last-child input`)?.focus(); }
+  else if (b.dataset.delSpeaker) { n.speakers.splice(+b.dataset.delSpeaker, 1); touch(); renderEditor(); }
+  else if (b.id === 'addSection') { n.sections.push({ id:uid(), title:'New Section', body:'' }); touch(); renderEditor();
+    const inputs = document.querySelectorAll('[data-sec="title"]'); inputs[inputs.length-1]?.select(); }
+  else if (b.dataset.delSection) {
+    const s = n.sections[+b.dataset.delSection];
+    if (!s.body.trim() || confirm(`Delete section “${s.title}”?`)) { n.sections.splice(+b.dataset.delSection, 1); touch(); renderEditor(); }
+  }
+  else if (b.dataset.move) {
+    const [i, d] = b.dataset.move.split(':').map(Number); const j = i + d;
+    if (j >= 0 && j < n.sections.length) { [n.sections[i], n.sections[j]] = [n.sections[j], n.sections[i]]; touch(); renderEditor(); }
+  }
+  else if (b.id === 'delBtn') {
+    if (confirm('Delete this note permanently?')) {
+      state.notes = state.notes.filter(x => x.id !== n.id); currentId = state.notes[0]?.id || null; persist(); render();
+    }
+  }
+  else if (b.id === 'dupBtn') {
+    const copy = JSON.parse(JSON.stringify(n)); copy.id = uid(); copy.title = (n.title || 'Untitled') + ' (copy)';
+    state.notes.unshift(copy); currentId = copy.id; persist(); render();
+  }
+  else if (b.id === 'copyBtn') {
+    navigator.clipboard.writeText(noteToText(n)).then(() => { b.textContent = '✓ Copied'; setTimeout(() => b.textContent = '📋 Copy as text', 1500); });
+  }
+});
+
+function noteToText(n) {
+  const lines = [n.title || 'Untitled sermon', `${fmtDate(n.date)} (${n.period}) — ${n.eventType}${n.location ? ' @ ' + n.location : ''}`];
+  const sp = n.speakers.filter(s => s.name.trim());
+  if (sp.length) lines.push('Speakers: ' + sp.map(s => s.name + (s.role ? ` (${s.role})` : '')).join(', '));
+  if ((n.summary || '').trim()) lines.push('', 'SUMMARY', n.summary);
+  if (n.scriptures.trim()) lines.push('', 'SCRIPTURE', n.scriptures);
+  n.sections.forEach(s => { if (s.body.trim()) lines.push('', s.title.toUpperCase(), s.body); });
+  if (n.actions.trim()) lines.push('', 'ACTION STEPS', n.actions);
+  if (n.prayer.trim()) lines.push('', 'PRAYER POINTS', n.prayer);
+  if ((n.transcript || '').trim()) lines.push('', 'TRANSCRIPT', n.transcript);
+  return lines.join('\n');
+}
+
+/* ---------- Dictation ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recording = false, recNoteId = null, recStart = 0, recTimer = null;
+let wakeLock = null, newPara = false, pendingSummary = false, recMsg = '';
+
+function startDictation() {
+  const n = current(); if (!n || !SR) return;
+  const r = new SR();
+  // Android Chrome repeats words in continuous mode, so restart after each phrase there instead
+  r.continuous = !/Android/i.test(navigator.userAgent);
+  r.interimResults = true;
+  r.lang = navigator.language || 'en-US';
+  r.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) appendTranscript(e.results[i][0].transcript);
+      else interim += e.results[i][0].transcript;
+    }
+    const el = $('interim'); if (el) el.textContent = interim;
+  };
+  r.onerror = e => {
+    const fatal = { 'not-allowed': 'Microphone access was blocked. Allow mic access for this site and try again.',
+      'service-not-allowed': 'Speech recognition is not allowed in this browser.',
+      'audio-capture': 'No microphone was found.' }[e.error];
+    if (fatal) { recMsg = fatal; stopDictation(false); }
+    // "no-speech", "network", "aborted" fall through to onend, which restarts
+  };
+  r.onend = () => {
+    if (rec !== r) return;
+    if (recording) { setTimeout(() => { if (recording && rec === r) try { r.start(); } catch {} }, 250); return; }
+    const el = $('interim'); if (el) el.textContent = '';
+    if (pendingSummary) { pendingSummary = false; autoSummarize(); }
+  };
+  rec = r; recording = true; pendingSummary = false; recNoteId = n.id; recStart = Date.now(); recMsg = '';
+  newPara = !!(n.transcript || '').trim();
+  try { r.start(); } catch (err) { recording = false; recMsg = 'Could not start dictation: ' + err.message; }
+  keepAwake();
+  clearInterval(recTimer); recTimer = setInterval(updateRecUI, 1000);
+  updateRecUI();
+}
+
+function stopDictation(summarize = true) {
+  if (!recording) return;
+  recording = false; clearInterval(recTimer);
+  pendingSummary = summarize && state.settings.autoSummary;
+  try { rec.stop(); } catch { if (pendingSummary) { pendingSummary = false; autoSummarize(); } }
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  updateRecUI();
+}
+
+async function keepAwake() {
+  try { if (recording && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
+}
+document.addEventListener('visibilitychange', () => { if (recording && document.visibilityState === 'visible') keepAwake(); });
+
+function appendTranscript(text) {
+  const n = state.notes.find(x => x.id === recNoteId); if (!n) return;
+  let t = text.trim(); if (!t) return;
+  t = t[0].toUpperCase() + t.slice(1);
+  if (!/[.!?]$/.test(t)) t += '.';
+  const cur = (n.transcript || '').trimEnd();
+  n.transcript = cur ? cur + (newPara ? '\n\n' : ' ') + t : t;
+  newPara = false;
+  if (n.id === currentId) {
+    const ta = document.querySelector('[data-f="transcript"]');
+    if (ta) { ta.value = n.transcript; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+    renderSumExtras();
+  }
+  touch();
+}
+
+function updateRecUI() {
+  const btn = $('recBtn'), st = $('recStatus');
+  if (btn) { btn.classList.toggle('recording', recording); btn.textContent = recording ? '■ Stop dictation' : '🎙 Start dictation'; }
+  if (!st) return;
+  if (recording && recNoteId === currentId) {
+    const sec = Math.floor((Date.now() - recStart) / 1000);
+    st.innerHTML = `<span class="rec-dot"></span>Listening… ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  } else st.textContent = recMsg;
+}
+
+/* ---------- Summary (runs entirely on this device) ---------- */
+const STOP = new Set(`a an the and or but if then so of to in on at by for with from as is are was were be been being it its
+this that these those i you he she we they me him her us them my your his our their what which who whom whose when where why
+how all any both each few more most other some such no nor not only own same than too very can will just do does did done have
+has had having would could should may might must shall am im ive youre youve dont didnt doesnt cant wont isnt arent gonna wanna
+going go goes get got gets say said says let lets thing things know like yeah okay ok oh um uh really there here up down out
+about into over again also because while one two three come came make made want see way well now right even back still every
+something someone somebody anything everything thats theres whats hes shes theyre were weve ill youll whatever ever many much
+little lot lots big kind sort mean means gotta morning evening tonight afternoon week everybody everyone`.split(/\s+/));
+const COMMON = new Set(['god', 'lord', 'jesus', 'christ', 'people', 'church', 'today', 'amen']);
+const CUES = /\b(the point is|main point|my point|remember|don'?t miss|key|i want you to|here'?s the thing|in conclusion|take ?away|the bible says|scripture says|word says|god wants|we must|we need to|you need to|the truth is|listen|that'?s why|the lesson)\b/i;
+
+const BOOKS = `genesis|exodus|leviticus|numbers|deuteronomy|joshua|judges|ruth|samuel|kings|chronicles|ezra|nehemiah|esther|job|psalms?|proverbs|ecclesiastes|song of solomon|song of songs|isaiah|jeremiah|lamentations|ezekiel|daniel|hosea|joel|amos|obadiah|jonah|micah|nahum|habakkuk|zephaniah|haggai|zechariah|malachi|matthew|mark|luke|john|acts|romans|corinthians|galatians|ephesians|philippians|colossians|thessalonians|timothy|titus|philemon|hebrews|james|peter|jude|revelation`;
+const REF_RE = new RegExp(String.raw`\b(?:(1|2|3|1st|2nd|3rd|first|second|third)\s+)?(${BOOKS})\s+(chapter\s+)?(\d{1,3})(?:(?:\s*:\s*|\s+verses?\s+)(\d{1,3})(?:\s*(?:-|–|\s+to\s+|\s+through\s+)\s*(\d{1,3}))?)?`, 'gi');
+const AMBIG = new Set(['numbers', 'job', 'mark', 'acts', 'james', 'john', 'jude', 'ruth', 'amos', 'joel', 'daniel', 'titus', 'peter', 'kings', 'judges']);
+const ORD = { first: 1, '1st': 1, second: 2, '2nd': 2, third: 3, '3rd': 3 };
+
+function findScriptures(text) {
+  const out = [];
+  for (const m of (text || '').matchAll(REF_RE)) {
+    const [, pre, book, chapWord, ch, v, v2] = m;
+    if (!v && !chapWord && AMBIG.has(book.toLowerCase())) continue; // "mark 5" in speech is often not a reference
+    let name = book.toLowerCase().replace(/^psalms$/, 'psalm').replace(/\b[a-z]/g, c => c.toUpperCase()).replace(' Of ', ' of ');
+    if (pre) name = (ORD[pre.toLowerCase()] || pre) + ' ' + name;
+    const ref = `${name} ${ch}${v ? ':' + v : ''}${v && v2 ? '-' + v2 : ''}`;
+    if (!out.includes(ref)) out.push(ref);
+  }
+  return out;
+}
+
+function splitSentences(text) {
+  const out = [];
+  (text.replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+|$)/g) || []).forEach(s => {
+    const w = s.trim().split(' ').filter(Boolean);
+    for (let i = 0; i < w.length; i += 30) out.push(w.slice(i, i + 30).join(' ')); // dictation often lacks punctuation
+  });
+  return out.filter(Boolean);
+}
+
+function summarize(text) {
+  const sents = splitSentences(text);
+  const words = s => (s.toLowerCase().match(/[a-z']+/g) || []).map(w => w.replace(/'s$/, '').replace(/'/g, ''));
+  // light stemming so "trust", "trusted", "trusting" count together; show the shortest form
+  const stem = w => w.length > 5 ? w.replace(/(ing|ed|es|s)$/, '') : w.replace(/s$/, '');
+  const shown = {};
+  const content = s => words(s).filter(w => w.length > 2 && !STOP.has(w)).map(w => {
+    const st = stem(w); if (!shown[st] || w.length < shown[st].length) shown[st] = w; return st; });
+  const freq = {};
+  sents.forEach(s => content(s).forEach(w => freq[w] = (freq[w] || 0) + 1));
+  const max = Math.max(1, ...Object.values(freq));
+  const scored = sents.map((s, i) => {
+    const ws = content(s);
+    if (words(s).length < 5 || !ws.length) return { s, i, score: 0 };
+    let score = ws.reduce((a, w) => a + freq[w] / max, 0) / Math.sqrt(ws.length);
+    if (CUES.test(s)) score *= 1.6;
+    if (findScriptures(s).length) score *= 1.3;
+    if (i < sents.length * 0.1 || i >= sents.length * 0.9) score *= 1.15;
+    return { s, i, score };
+  });
+  const k = Math.min(7, Math.max(3, Math.round(sents.length * 0.2)));
+  const picked = sents.length <= k ? scored
+    : [...scored].sort((a, b) => b.score - a.score).slice(0, k).filter(p => p.score > 0).sort((a, b) => a.i - b.i);
+  const themes = Object.entries(freq).filter(([w, c]) => c > 1 && !COMMON.has(shown[w]))
+    .sort((a, b) => b[1] - a[1]).slice(0, 6).map(([w]) => shown[w]);
+  const refs = findScriptures(text);
+  const out = [];
+  if (themes.length) out.push('Key themes: ' + themes.join(', '));
+  if (refs.length) out.push('Scriptures mentioned: ' + refs.join('; '));
+  if (out.length) out.push('');
+  out.push('Main points:', ...picked.map(p => '• ' + p.s));
+  return out.join('\n');
+}
+
+function makeSummary(n) {
+  n.summary = summarize(n.transcript || '');
+  n.summaryEdited = false;
+  recMsg = '✨ Summary updated';
+  if (n.id === currentId) sparkle(document.querySelector('[data-f="summary"]'));
+  touch();
+  if (n.id === currentId) {
+    const ta = document.querySelector('[data-f="summary"]');
+    if (ta) { ta.value = n.summary; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+  }
+  updateRecUI();
+}
+
+function autoSummarize() {
+  const n = state.notes.find(x => x.id === recNoteId);
+  if (!n || !(n.transcript || '').trim()) return;
+  if (n.summaryEdited && (n.summary || '').trim()) { recMsg = 'Kept your edited summary. Tap ✨ Summarize to regenerate it.'; updateRecUI(); return; }
+  makeSummary(n);
+}
+
+function missingRefs(n) {
+  const have = (n.scriptures || '').toLowerCase().replace(/\s+/g, ' ');
+  return findScriptures(n.transcript).filter(r => !have.includes(r.toLowerCase()));
+}
+function renderSumExtras() {
+  const el = $('sumExtras'), n = current(); if (!el || !n) return;
+  const m = missingRefs(n);
+  el.innerHTML = m.length ? `<button id="addRefs">📖 Add to references</button>
+    <span class="saved">${esc(m.join('; '))}</span>` : '';
+}
+
+/* ---------- Manage lists ---------- */
+function renderDatalist() {
+  $('speakerOptions').innerHTML = state.speakers.map(s => `<option value="${esc(s)}">`).join('');
+}
+function renderManage() {
+  const li = (arr, kind) => arr.map((x, i) => `<li><span>${esc(x)}</span><button class="icon danger" data-rm="${kind}:${i}">✕</button></li>`).join('')
+    || '<li style="color:var(--muted)">None yet</li>';
+  $('speakerList').innerHTML = li(state.speakers, 'speakers');
+  $('eventList').innerHTML = li(state.eventTypes, 'eventTypes');
+}
+$('manageBtn').onclick = () => { renderManage(); $('manageDlg').showModal(); };
+$('closeManage').onclick = () => { $('manageDlg').close(); render(); };
+$('manageDlg').addEventListener('click', e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return;
+  const [k, i] = b.dataset.rm.split(':'); state[k].splice(+i, 1); persist(); renderManage();
+});
+function addTo(kind, input) {
+  const v = $(input).value.trim(); if (!v) return;
+  if (!state[kind].includes(v)) state[kind].push(v);
+  $(input).value = ''; persist(); renderManage(); renderDatalist();
+}
+$('addSpeakerBtn').onclick = () => addTo('speakers', 'newSpeaker');
+$('addEventBtn').onclick = () => addTo('eventTypes', 'newEvent');
+$('newSpeaker').onkeydown = e => e.key === 'Enter' && addTo('speakers', 'newSpeaker');
+$('newEvent').onkeydown = e => e.key === 'Enter' && addTo('eventTypes', 'newEvent');
+
+$('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `sermon-notes-${today()}.json`; a.click(); URL.revokeObjectURL(a.href);
+};
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!Array.isArray(data.notes)) throw new Error('Invalid file');
+    const ids = new Set(state.notes.map(n => n.id));
+    const fresh = data.notes.filter(n => !ids.has(n.id));
+    state.notes.push(...fresh);
+    state.speakers = [...new Set([...state.speakers, ...(data.speakers || [])])];
+    state.eventTypes = [...new Set([...state.eventTypes, ...(data.eventTypes || [])])];
+    persist(); renderManage(); render(); alert(`Imported ${fresh.length} note(s).`);
+  } catch (err) { alert('Could not import: ' + err.message); }
+  e.target.value = '';
+};
+
+/* ---------- Boot ---------- */
+// save immediately if the page is closed or hidden before the autosave delay
+const flush = () => { clearTimeout(saveTimer); persist(); };
+window.addEventListener('pagehide', flush);
+document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
+$('newBtn').onclick = () => { sparkle($('newBtn')); newNote(); };
+$('menuBtn').onclick = () => $('sidebar').classList.toggle('open');
+function render() {
+  if (recording && recNoteId !== currentId) stopDictation();
+  renderFilters(); renderList(); renderEditor(); renderDatalist(); }
+render();
+</script>
+</body>
+</html>
