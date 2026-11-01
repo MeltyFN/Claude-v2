@@ -37,7 +37,14 @@
       radial-gradient(circle at 10% 20%, rgba(211,154,69,.14), transparent 40%),
       radial-gradient(circle at 90% 10%, rgba(125,139,78,.13), transparent 40%),
       radial-gradient(circle at 70% 90%, rgba(181,82,59,.10), transparent 45%);
-    background-attachment: fixed; }
+    background-attachment: fixed; display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden; }
+  header { flex:none; }
+  .toast { position:fixed; left:50%; bottom:22px; z-index:120; max-width:min(92vw,520px); padding:12px 18px; border-radius:14px;
+    background:#3a2e24; color:#fff8ee; font-weight:700; box-shadow: 0 14px 34px -10px rgba(0,0,0,.5);
+    transform: translateX(-50%); animation: toast-in .45s cubic-bezier(.3,1.4,.5,1); }
+  .toast.out { animation: toast-out .35s ease-in forwards; }
+  @keyframes toast-in { from { opacity:0; transform: translate(-50%, 24px) scale(.95); } }
+  @keyframes toast-out { to { opacity:0; transform: translate(-50%, 16px); } }
   h1, h2, h3, .title-input { font-family: "Fredoka", "Nunito", system-ui, sans-serif; }
 
   header { display:flex; align-items:center; gap:10px; padding:12px 20px; background: var(--sunrise);
@@ -92,7 +99,7 @@
   label { font-size:.75rem; color:var(--muted); font-weight:800; text-transform:uppercase;
     letter-spacing:.06em; display:block; margin-bottom:6px; }
 
-  .layout { display:grid; grid-template-columns: 320px 1fr; height: calc(100vh - 60px); }
+  .layout { display:grid; grid-template-columns: 320px 1fr; flex:1; min-height:0; }
   aside { overflow:auto; background: color-mix(in srgb, var(--panel) 85%, transparent);
     border-right:2px solid var(--line); backdrop-filter: blur(6px); }
   .filters { padding:14px; display:grid; gap:8px; border-bottom:2px solid var(--line);
@@ -402,7 +409,7 @@
   .menu-btn.x .l3 { transform: translateY(-5px) rotate(-45deg); }
   @media (max-width: 760px) {
     .layout { grid-template-columns: 1fr; }
-    aside { position:fixed; inset:60px 0 0 0; z-index:4; background:var(--bg); transform: translateX(-105%);
+    aside { position:fixed; inset: var(--header-h, 60px) 0 0 0; z-index:4; background:var(--bg); transform: translateX(-105%);
       visibility:hidden; transition: transform .45s cubic-bezier(.3,1.15,.4,1), visibility 0s linear .45s; }
     aside.open { transform:none; visibility:visible; transition-delay: 0s; }
     .menu-btn { display:inline-flex; }
@@ -418,6 +425,7 @@
     .card { padding:16px; }
   }
   @media print {
+    body { display:block; height:auto; overflow:visible; }
     header, aside, .no-print { display:none !important; }
     body { background:#fff; }
     .layout { display:block; height:auto; }
@@ -478,12 +486,7 @@
   <div style="text-align:right;margin-top:16px"><button class="primary" id="closeManage">Done</button></div>
 </dialog>
 
-<datalist id="speakerOptions"></datalist>
-<datalist id="roleOptions">
-  <option value="Pastor"><option value="Guest Speaker"><option value="Evangelist">
-  <option value="Youth Pastor"><option value="Elder"><option value="Deacon">
-  <option value="Worship Leader"><option value="Minister"><option value="Teacher">
-</datalist>
+
 
 <script>
 const KEY = 'sermon-notes-v1';
@@ -491,18 +494,57 @@ const DEFAULT_EVENTS = ['Sunday Service','Wednesday Bible Study','Prayer Meeting
   'Conference','Youth Service','Women\'s Ministry','Men\'s Ministry','Special Event','Funeral','Wedding'];
 const DEFAULT_SECTIONS = ['Main Points','Key Quotes','Personal Reflection'];
 
+
+// repair anything missing or malformed (older versions, imports, hand-edited backups)
+const str = v => typeof v === 'string' ? v : v == null ? '' : String(v);
+const strList = a => Array.isArray(a) ? [...new Set(a.map(str).map(x => x.trim()).filter(Boolean))] : [];
+function normNote(n) {
+  return {
+    id: str(n.id) || uid(), title: str(n.title), date: str(n.date), period: n.period === 'PM' ? 'PM' : 'AM',
+    eventType: str(n.eventType), location: str(n.location),
+    speakers: Array.isArray(n.speakers) && n.speakers.length ? n.speakers.map(x => ({ name: str(x?.name), role: str(x?.role) })) : [{ name: '', role: '' }],
+    scriptures: str(n.scriptures),
+    sections: Array.isArray(n.sections) ? n.sections.map(x => ({ id: str(x?.id) || uid(), title: str(x?.title), body: str(x?.body) }))
+      : DEFAULT_SECTIONS.map(t => ({ id: uid(), title: t, body: '' })),
+    actions: str(n.actions), prayer: str(n.prayer), transcript: str(n.transcript), summary: str(n.summary),
+    summaryEdited: !!n.summaryEdited, updated: +n.updated || Date.now()
+  };
+}
+function normState(s) {
+  const notes = (Array.isArray(s?.notes) ? s.notes : []).filter(n => n && typeof n === 'object').map(normNote);
+  const used = new Set(notes.flatMap(n => n.speakers.map(x => x.name.trim())));
+  let speakers = strList(s?.speakers);
+  // clean up partial names saved by older versions ("P", "Pa", "Pas"… while typing)
+  speakers = speakers.filter(x => used.has(x) || !speakers.some(o => o !== x && o.startsWith(x)));
+  return { notes, speakers, eventTypes: Array.isArray(s?.eventTypes) ? strList(s.eventTypes) : [...DEFAULT_EVENTS],
+    settings: { autoSummary: s?.settings?.autoSummary !== false, autoFill: s?.settings?.autoFill !== false } };
+}
+let storageProblem = false;
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) return normState(JSON.parse(raw)); }
+  catch { storageProblem = true; }
+  return normState({});
+}
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
+  catch {
+    if (!storageProblem) toast('Your notes couldn’t be saved on this device (storage is full or blocked). Use Lists → Export to back them up.', 9000);
+    storageProblem = true; return false;
+  }
+}
+function rememberSpeaker(name) {
+  const nm = str(name).trim(); if (!nm || state.speakers.includes(nm)) return;
+  state.speakers = state.speakers.filter(x => !nm.startsWith(x) || x === nm);   // drop shorter partials of this name
+  state.speakers.push(nm);
+}
+function toast(msg, ms = 5000) {
+  const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 400); }, ms);
+}
+
 let state = load();
 let currentId = state.notes[0]?.id || null;
 let saveTimer;
-
-function load() {
-  try {
-    const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && Array.isArray(s.notes)) { s.settings ||= { autoSummary: true }; s.settings.autoFill ??= true; return s; }
-  } catch {}
-  return { notes: [], speakers: [], eventTypes: [...DEFAULT_EVENTS], settings: { autoSummary: true, autoFill: true } };
-}
-function persist() { localStorage.setItem(KEY, JSON.stringify(state)); }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $ = id => document.getElementById(id);
@@ -619,6 +661,7 @@ function newNote() {
     actions: '', prayer: '', transcript: '', summary: '', updated: Date.now()
   };
   state.notes.unshift(note); currentId = note.id; justAdded = note.id; persist(); render(); justAdded = null;
+  if (state.notes.length === 1) navigator.storage?.persist?.().catch(() => {});
   setTimeout(() => document.querySelector('.title-input')?.focus(), 0);
 }
 
@@ -627,10 +670,8 @@ const current = () => state.notes.find(n => n.id === currentId);
 function touch() {
   const n = current(); if (!n) return;
   n.updated = Date.now();
-  // remember speaker names for reuse
-  n.speakers.forEach(s => { const nm = s.name.trim(); if (nm && !state.speakers.includes(nm)) state.speakers.push(nm); });
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { persist(); renderList(); renderFilters(); renderDatalist();
+  saveTimer = setTimeout(() => { persist(); renderList(); renderFilters();
     const el = $('savedMsg'); if (el) el.innerHTML = ic('check', 'draw-now') + ' Saved ' + new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }, 400);
 }
 
@@ -811,6 +852,7 @@ ed.addEventListener('change', e => {
   const n = current(); const t = e.target;
   if (t.id === 'autoSum') { state.settings.autoSummary = t.checked; persist(); return; }
   if (t.id === 'autoFill') { state.settings.autoFill = t.checked; persist(); return; }
+  if (t.dataset.s === 'name') { rememberSpeaker(t.value); touch(); return; }   // saved once you finish typing
   if (t.dataset.f === 'eventType') {
     if (t.value === '__new') {
       const name = prompt('New event type name:')?.trim();
@@ -891,7 +933,7 @@ function noteToText(n) {
 /* ---------- Dictation ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, recording = false, recNoteId = null, recStart = 0, recTimer = null;
-let wakeLock = null, newPara = false, pendingSummary = false, recMsg = '';
+let wakeLock = null, newPara = false, pendingSummary = false, recMsg = '', lastStart = 0, quickFails = 0, lastErr = '';
 
 function startDictation() {
   const n = current(); if (!n || !SR) return;
@@ -903,7 +945,7 @@ function startDictation() {
   r.onresult = e => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) appendTranscript(e.results[i][0].transcript);
+      if (e.results[i].isFinal) { quickFails = 0; appendTranscript(e.results[i][0].transcript); }
       else interim += e.results[i][0].transcript;
     }
     const el = $('interim'); if (el) el.textContent = interim;
@@ -912,18 +954,32 @@ function startDictation() {
     const fatal = { 'not-allowed': 'Microphone access was blocked. Allow mic access for this site and try again.',
       'service-not-allowed': 'Speech recognition is not allowed in this browser.',
       'audio-capture': 'No microphone was found.' }[e.error];
+    lastErr = e.error;
     if (fatal) { recMsg = fatal; stopDictation(false); }
     // "no-speech", "network", "aborted" fall through to onend, which restarts
   };
   r.onend = () => {
     if (rec !== r) return;
-    if (recording) { setTimeout(() => { if (recording && rec === r) try { r.start(); } catch {} }, 250); return; }
+    let problem = '';
+    if (recording) {
+      // the browser stops listening after pauses; start again, but give up if it keeps failing right away
+      quickFails = Date.now() - lastStart < 2000 ? quickFails + 1 : 0;
+      if (quickFails < 6) {
+        setTimeout(() => { if (recording && rec === r) try { lastStart = Date.now(); r.start(); } catch {} }, 250 + quickFails * 400);
+        return;
+      }
+      problem = lastErr === 'network' ? 'Dictation needs an internet connection. Check your signal, then tap Start dictation again.'
+        : 'Dictation keeps stopping. Tap Start dictation to try again.';
+      stopDictation(true);
+    }
     const el = $('interim'); if (el) el.textContent = '';
     if (pendingSummary) { pendingSummary = false; autoSummarize(); }
     if (pendingFill) { pendingFill = false; finishAutoFill(); }
+    if (problem) { recMsg = problem; updateRecUI(); }
   };
   rec = r; recording = true; pendingSummary = false; pendingFill = false; liveCtx = newCtx(); recNoteId = n.id; recStart = Date.now(); recMsg = '';
   newPara = !!(n.transcript || '').trim();
+  quickFails = 0; lastErr = ''; lastStart = Date.now();
   try { r.start(); } catch (err) { recording = false; recMsg = 'Could not start dictation: ' + esc(err.message); }
   keepAwake();
   clearInterval(recTimer); recTimer = setInterval(updateRecUI, 1000);
@@ -1091,9 +1147,6 @@ function renderSumExtras() {
 }
 
 /* ---------- Manage lists ---------- */
-function renderDatalist() {
-  $('speakerOptions').innerHTML = state.speakers.map(s => `<option value="${esc(s)}">`).join('');
-}
 function renderManage() {
   const li = (arr, kind) => arr.map((x, i) => `<li><span>${esc(x)}</span><button class="icon danger" data-rm="${kind}:${i}">${ic('x')}</button></li>`).join('')
     || '<li style="color:var(--muted)">None yet</li>';
@@ -1102,10 +1155,11 @@ function renderManage() {
 }
 $('manageBtn').onclick = () => { renderManage(); $('manageDlg').showModal(); };
 $('closeManage').onclick = () => {
-  const d = $('manageDlg'), fin = () => { d.classList.remove('folding'); d.close(); render(); };
+  const d = $('manageDlg'), fin = () => { d.classList.remove('folding'); d.close(); };
   if (REDUCE) return fin();
   d.classList.add('folding'); setTimeout(fin, 320);
 };
+$('manageDlg').addEventListener('close', () => render());   // also when closed with Esc
 $('manageDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-rm]'); if (!b) return;
   const [k, i] = b.dataset.rm.split(':'), row = b.closest('li');
@@ -1117,7 +1171,7 @@ $('manageDlg').addEventListener('click', e => {
 function addTo(kind, input) {
   const v = $(input).value.trim(); if (!v) return;
   if (!state[kind].includes(v)) state[kind].push(v);
-  $(input).value = ''; persist(); renderManage(); renderDatalist();
+  $(input).value = ''; persist(); renderManage();
   const list = kind === 'speakers' ? '#speakerList' : '#eventList';
   play(document.querySelector(`${list} li:last-child`), 'stamped', 700);
 }
@@ -1129,21 +1183,25 @@ $('newEvent').onkeydown = e => e.key === 'Enter' && addTo('eventTypes', 'newEven
 $('exportBtn').onclick = () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `sermon-notes-${today()}.json`; a.click(); URL.revokeObjectURL(a.href);
+  a.download = `sermon-notes-${today()}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Backup saved to your downloads.');
 };
 $('importBtn').onclick = () => $('importFile').click();
 $('importFile').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
-    const data = JSON.parse(await f.text());
-    if (!Array.isArray(data.notes)) throw new Error('Invalid file');
-    const ids = new Set(state.notes.map(n => n.id));
+    const raw = JSON.parse(await f.text());
+    if (!raw || !Array.isArray(raw.notes)) throw new Error('this isn’t a Sermon Notes backup file');
+    const data = normState(raw), ids = new Set(state.notes.map(n => n.id));
     const fresh = data.notes.filter(n => !ids.has(n.id));
     state.notes.push(...fresh);
-    state.speakers = [...new Set([...state.speakers, ...(data.speakers || [])])];
-    state.eventTypes = [...new Set([...state.eventTypes, ...(data.eventTypes || [])])];
-    persist(); renderManage(); render(); alert(`Imported ${fresh.length} note(s).`);
-  } catch (err) { alert('Could not import: ' + err.message); }
+    state.speakers = [...new Set([...state.speakers, ...data.speakers])];
+    state.eventTypes = [...new Set([...state.eventTypes, ...data.eventTypes])];
+    if (!currentId && state.notes.length) currentId = state.notes[0].id;
+    persist(); renderManage(); render();
+    toast(fresh.length ? `Imported ${fresh.length} note${fresh.length > 1 ? 's' : ''}.` : 'Those notes are already here, nothing new to import.');
+  } catch (err) { toast('Could not import: ' + err.message, 7000); }
   e.target.value = '';
 };
 
@@ -1158,8 +1216,13 @@ const RX = {
   quoteCue: /\b(write (this|that) down|say (it|this) with me|tell your neighbou?r|turn to (your|somebody|someone) and say|if you (remember|forget) (nothing|anything) else|don'?t miss this|catch this|listen to (me|this)|hear me|here'?s the (truth|thing|key))\b/i,
   title: /(?:title of (?:my|the|today'?s|this(?: morning'?s| evening'?s)?) (?:message|sermon|word) is|(?:message|sermon|word) (?:today |tonight |this morning )?is (?:titled|called|entitled)|i(?:'ve| have)? (?:titled|called|entitled|named) (?:this|the|today'?s|my) (?:message|sermon))\s*[:,]?\s*["“]?([^.!?"”]{3,70})/i,
   speaker: new RegExp(`(?:welcome|introduce|introducing|give it up for|receive|please welcome|our (?:speaker|preacher|guest) (?:today|this morning|tonight|this evening) is|my name is|i'?m|i am)\\s+(?:our\\s+(?:own\\s+)?|the\\s+)?((?:${TITLE_WORDS})\\s+[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)?)`, 'i'),
-  readCue: /\b(it says|it reads|says|reads|read with me|declares|tells us)\b[:,]?\s*$/i
+  readCue: /\b(it says|it reads|says|reads|read with me|declares|tells us)\b[:,]?\s*$/i,
+  // things said between announcing a verse and reading it
+  filler: /\b(amen|when you (have|get|got|find) (it|there)|say (amen|done|got it|i got it)|turn (with me )?to|let'?s (read|look)|stand( with me)?|if you (have|got) your bibles?|are you there|page \d+|in your bibles?|you can be seated)\b/i,
+  titleStop: /\s+(and|so|because|but|turn|if|today|tonight|this morning|this evening|let'?s|i want|we'?re going)\b.*$/i
 };
+const NOT_NAMES = new Set(['to', 'the', 'in', 'of', 'and', 'for', 'with', 'our', 'my', 'is', 'this', 'that', 'here', 'up', 'on', 'at',
+  'a', 'an', 'lord', 'god', 'jesus', 'christ', 'church', 'family', 'everybody', 'everyone', 'back', 'again', 'today']);
 const norm = x => (x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const has = (field, line) => norm(field).includes(norm(line));
 const titleCase = x => x.trim().replace(/\s+/g, ' ').replace(/\b([a-z])([a-z']*)/gi, (m, a, b, i) =>
@@ -1170,10 +1233,14 @@ function routeSentence(n, sent, ctx) {
   const s = sent.trim(); if (!s) return;
   const changed = new Set();
   // the verse being read right after a reference was announced
-  if (ctx.reading && !findScriptures(s).length && s.split(/\s+/).length >= 3) {
-    if (attachReading(n, ctx.reading, s)) { changed.add('scriptures'); count(ctx, 'readings'); }
-    ctx.reading = null;
-  } else ctx.reading = null;
+  if (ctx.reading) {
+    if (findScriptures(s).length) ctx.reading = null;
+    else if (RX.filler.test(s) && (ctx.wait = (ctx.wait || 0) + 1) <= 3) { /* still waiting for the reading */ }
+    else {
+      if (s.split(/\s+/).length >= 3 && attachReading(n, ctx.reading, s)) { changed.add('scriptures'); count(ctx, 'readings'); }
+      ctx.reading = null;
+    }
+  }
   // a quote announced by "write this down" etc. is the next sentence
   if (ctx.quoteNext) { ctx.quoteNext = false; if (addToSection(n, /quote/i, 'Key Quotes', '“' + s.replace(/[.]$/, '') + '”')) { changed.add('sec:quote'); count(ctx, 'quotes'); } }
 
@@ -1185,20 +1252,25 @@ function routeSentence(n, sent, ctx) {
     const rest = after.replace(RX.readCue, '').replace(/^(it says|says|reads|it reads)\s*[:,]?\s*/i, '');
     if (rest.split(/\s+/).filter(Boolean).length >= 4 && !findScriptures(rest).length) {
       if (attachReading(n, ref, rest)) { changed.add('scriptures'); count(ctx, 'readings'); }
-    } else ctx.reading = ref;          // the reading will come in the next sentence
+    } else { ctx.reading = ref; ctx.wait = 0; }   // the reading usually comes next
   }
   // sermon title
   const tm = !n.title.trim() && s.match(RX.title);
-  if (tm) { n.title = titleCase(tm[1]); changed.add('title'); count(ctx, 'title'); }
+  const tt = tm && tm[1].replace(RX.titleStop, '').split(/\s+/).slice(0, 9).join(' ');
+  if (tt && tt.length >= 3) { n.title = titleCase(tt); changed.add('title'); count(ctx, 'title'); }
   // speaker introductions
+  // speech recognition capitalizes real names, so require capitals after the title word
   const sm = s.match(RX.speaker);
-  if (sm) {
-    const name = titleCase(sm[1].replace(/\brev\b\.?/i, 'Reverend').replace(/\bdr\b\.?/i, 'Dr.'));
+  const nameWords = sm ? sm[1].split(/\s+/) : [];
+  let keep = 1; while (keep < nameWords.length && /^[A-Z]/.test(nameWords[keep]) && !NOT_NAMES.has(nameWords[keep].toLowerCase())) keep++;
+  if (sm && keep > 1) {
+    const name = titleCase(nameWords.slice(0, keep).join(' ').replace(/\brev\b\.?/i, 'Reverend').replace(/\bdr\b\.?/i, 'Dr.'));
     if (!n.speakers.some(x => norm(x.name) === norm(name))) {
       const word = name.split(' ')[0];
       const role = /^(Brother|Sister|Dr\.|Doctor|Mother|Father)$/.test(word) ? 'Guest Speaker' : word;
       const empty = n.speakers.find(x => !x.name.trim());
       if (empty) { empty.name = name; empty.role = empty.role || role; } else n.speakers.push({ name, role });
+      rememberSpeaker(name);
       changed.add('speakers'); count(ctx, 'speakers');
     }
   }
@@ -1213,6 +1285,16 @@ function routeSentence(n, sent, ctx) {
   if (changed.size) showFilled(n, changed);
 }
 
+function rerenderKeepFocus() {
+  const a = document.activeElement, d = a?.dataset || {};
+  const key = d.f ? `[data-f="${d.f}"]`
+    : d.sec ? `.section[data-i="${a.closest('.section').dataset.i}"] [data-sec="${d.sec}"]`
+    : d.s ? `.speaker-row[data-i="${a.closest('.speaker-row').dataset.i}"] [data-s="${d.s}"]` : null;
+  const sel = key && 'selectionStart' in a ? [a.selectionStart, a.selectionEnd] : null;
+  renderEditor();
+  const el = key && document.querySelector(key);
+  if (el) { el.focus({ preventScroll: true }); if (sel) try { el.setSelectionRange(...sel); } catch {} }
+}
 function addLine(n, field, line) {
   if (has(n[field], line.replace(/^• /, ''))) return false;
   n[field] = ((n[field] || '').trimEnd() ? n[field].trimEnd() + '\n' : '') + line;
@@ -1254,8 +1336,7 @@ function showFilled(n, changed) {
   if (n.id !== currentId) return;
   if ([...changed].some(k => k === 'speakers') || n.sections.some(x => x._new)) {
     n.sections.forEach(x => delete x._new);
-    const keep = document.activeElement?.dataset?.f === 'transcript';
-    renderEditor(); if (keep) document.querySelector('[data-f="transcript"]')?.focus();
+    rerenderKeepFocus();
   }
   const from = document.querySelector('[data-f="transcript"]');
   const spots = { scriptures: ['[data-f="scriptures"]', 'book', 'Scripture'], prayer: ['[data-f="prayer"]', 'candle', 'Prayer'],
@@ -1352,7 +1433,7 @@ document.addEventListener('click', e => {
   const li = e.target.closest('.dd-list li'); if (li && PANEL && PANEL.el.contains(li)) pickPanel(+li.dataset.i);
 });
 document.addEventListener('mousedown', e => { if (e.target.closest('.dd-list')) e.preventDefault(); }); // keep focus in the field
-window.addEventListener('resize', () => closePanel(true));
+window.addEventListener('resize', () => placePanel());
 document.addEventListener('scroll', e => { if (PANEL && !PANEL.el.contains(e.target)) placePanel(); }, true);
 
 // turn a <select> into an animated dropdown (the real select stays, hidden, so everything else keeps working)
@@ -1367,10 +1448,12 @@ function enhanceSelects() {
     wrap.appendChild(btn); syncSelect(sel);
   });
 }
+const DD_NAMES = { filterEvent: 'Filter by event type', filterSpeaker: 'Filter by speaker', filterPeriod: 'Filter by AM or PM', sortBy: 'Sort notes', eventType: 'Event type' };
 function syncSelect(sel) {
   const lab = sel.closest('.dd')?.querySelector('.dd-label'); if (!lab) return;
   const t = sel.selectedOptions[0]?.text || '';
   if (lab.textContent !== t) lab.textContent = t;
+  lab.parentElement.setAttribute('aria-label', `${DD_NAMES[sel.id || sel.dataset.f] || 'Choose'}: ${t}`);
 }
 function openSelect(btn) {
   const sel = btn.closest('.dd').querySelector('select'), variant = btn.closest('.dd').className.match(/v-(\w+)/)[1];
@@ -1407,7 +1490,8 @@ function suggest(inp, force = false) {
   const items = pool.filter(x => (force || !q || x.toLowerCase().includes(q)) && x.toLowerCase() !== q).slice(0, 8).map(x => ({ label: x, value: x }));
   if (!items.length) { if (PANEL && PANEL.anchor === inp) closePanel(); return; }
   openPanel(inp, items, kind === 'name' ? 'typewriter' : 'bubbles', it => {
-    inp.value = it.value; inp.dispatchEvent(new Event('input', { bubbles: true })); play(inp, 'tap-filled', 700);
+    inp.value = it.value; inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true }));
+    play(inp, 'tap-filled', 700);
   }, -1, PANEL && PANEL.anchor === inp);
 }
 document.addEventListener('focusin', e => { const inp = e.target.closest('[data-s]'); if (inp) suggest(inp, true); });
@@ -1481,7 +1565,7 @@ function flyRefs({ r, text }) {
 }
 
 // welcome button: let it sprout for a moment before the first note opens
-function startFirst(btn) { seedBurst(btn); play(btn, 'tap-sprout', 900); setTimeout(newNote, REDUCE ? 0 : 420); }
+function startFirst(btn) { if (btn.disabled) return; btn.disabled = true; seedBurst(btn); play(btn, 'tap-sprout', 900); setTimeout(newNote, REDUCE ? 0 : 420); }
 
 // deleting a note: its cards tumble away first
 function fallAway(done) {
@@ -1512,9 +1596,15 @@ $('menuBtn').onclick = () => setSidebar(!$('sidebar').classList.contains('open')
 // swap the placeholder spans in the static HTML for the hand-drawn icons
 document.querySelectorAll('[data-ic]').forEach(el => { el.outerHTML = ic(el.dataset.ic); });
 enhanceSelects();
+const syncHeader = () => document.documentElement.style.setProperty('--header-h', document.querySelector('header').offsetHeight + 'px');
+syncHeader(); window.addEventListener('resize', syncHeader);
+if (storageProblem) setTimeout(() => toast('This browser is blocking storage, so notes won’t be kept after you close it. Use Lists → Export to save a backup.', 9000), 800);
+// work offline (and open instantly) once installed or visited over https
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost'))
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 function render() {
   if (recording && recNoteId !== currentId) stopDictation();
-  renderFilters(); renderList(); renderEditor(); renderDatalist(); }
+  renderFilters(); renderList(); renderEditor(); }
 render();
 </script>
 </body>
