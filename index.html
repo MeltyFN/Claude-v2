@@ -628,6 +628,14 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   #island .is-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
   #island .is-actions button { background:#2a2d36; color:#FAF9F6; border:none; padding:9px; font-size:.85rem; }
   #island .is-actions button.stop { background:#b3261e; }
+
+  /* date field: Safari (iPhone) draws it with its own style that ignores width and centers the text.
+     Make it a normal field: full width, same height as the others, text on the left like every other box. */
+  input[type="date"] { -webkit-appearance:none; appearance:none; display:block; width:100%; max-width:100%; min-width:0;
+    height:40px; min-height:40px; line-height:normal; text-align:left; }
+  input[type="date"]::-webkit-date-and-time-value { text-align:left; margin:0; min-height:1.2em; }
+  input[type="date"]::-webkit-datetime-edit { padding:0; }
+  .grid3 > div { min-width:0; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { animation: none !important; transition: none !important; } }
 
   .menu-btn { display:none; }
