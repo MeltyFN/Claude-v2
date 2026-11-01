@@ -1,17 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- same as the app header: sunrise gradient, frosted rounded tile, white cross with round ends -->
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#9c4a2f"/>
-      <stop offset=".3" stop-color="#c0683f"/>
-      <stop offset=".62" stop-color="#d39a45"/>
-      <stop offset="1" stop-color="#7d8b4e"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" fill="url(#bg)"/>
-  <rect x="86" y="86" width="340" height="340" rx="113" fill="#fff" fill-opacity=".25"/>
-  <g stroke="#fff" stroke-width="19" stroke-linecap="round" fill="none">
-    <path d="M256 173.7V338.3"/>
-    <path d="M208.3 221.3H303.7"/>
+  <!-- same as the app's header logo: #14161C tile with a #FAF9F6 round-ended cross -->
+  <rect width="512" height="512" fill="#14161C"/>
+  <g stroke="#FAF9F6" stroke-width="29" stroke-linecap="round" fill="none">
+    <path d="M256 132V380"/>
+    <path d="M184.3 203.8H327.7"/>
   </g>
 </svg>

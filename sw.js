@@ -1,7 +1,7 @@
 // Sermon Notes offline support: the app opens and works with no signal.
 // Pages load fresh from the network when possible (so updates show right away)
 // and fall back to the saved copy when offline. Icons and fonts are served from the cache.
-const CACHE = 'sermon-notes-v2-1';
+const CACHE = 'sermon-notes-v2-2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
