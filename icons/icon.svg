@@ -1,20 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- same as the app's header logo: aurora gradient tile with a soft highlight and a white round-ended cross -->
+  <!-- same as the app's header logo: deep navy tile with a gold round-ended cross -->
   <defs>
-    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7c3aed"/>
-      <stop offset=".34" stop-color="#4f46e5"/>
-      <stop offset=".62" stop-color="#2563eb"/>
-      <stop offset="1" stop-color="#06b6d4"/>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f3a5f"/>
+      <stop offset="1" stop-color="#2c4f7c"/>
     </linearGradient>
-    <radialGradient id="shine" cx=".3" cy=".2" r=".55">
-      <stop offset="0" stop-color="#fff" stop-opacity=".38"/>
-      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-    </radialGradient>
   </defs>
-  <rect width="512" height="512" fill="url(#aurora)"/>
-  <rect width="512" height="512" fill="url(#shine)"/>
-  <g stroke="#fff" stroke-width="29" stroke-linecap="round" fill="none">
+  <rect width="512" height="512" fill="url(#navy)"/>
+  <g stroke="#c9a227" stroke-width="29" stroke-linecap="round" fill="none">
     <path d="M256 132V380"/>
     <path d="M184.3 203.8H327.7"/>
   </g>
