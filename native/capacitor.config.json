@@ -1,0 +1,9 @@
+{
+  "appId": "com.meltyfn.sermonnotes",
+  "appName": "Sermon Notes",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#FAF9F6"
+  }
+}

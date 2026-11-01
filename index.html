@@ -1189,7 +1189,39 @@ function noteToText(n) {
 }
 
 /* ---------- Dictation ---------- */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+/* Inside the native iPhone build, dictation runs natively (keeps listening while locked and drives the
+   Live Activity). NativeSR behaves like the browser's SpeechRecognition so the rest of the app is unchanged. */
+const NATIVE_DICT = window.Capacitor?.isNativePlatform?.() && window.Capacitor.registerPlugin
+  ? window.Capacitor.registerPlugin('SermonDictation') : null;
+const speechEvent = (text, isFinal) => { const r = [{ transcript: text }]; r.isFinal = isFinal; return { resultIndex: 0, results: [r] }; };
+class NativeSR {
+  constructor() { this.continuous = true; this.interimResults = true; this.lang = 'en-US'; this._subs = []; }
+  async _drain() {
+    try { const { texts } = await NATIVE_DICT.drain(); (texts || []).forEach(t => this.onresult?.(speechEvent(t, true))); } catch {}
+  }
+  async start() {
+    this._subs = await Promise.all([
+      NATIVE_DICT.addListener('partial', d => this.onresult?.(speechEvent(d.text || '', false))),
+      NATIVE_DICT.addListener('final', () => this._drain()),
+      NATIVE_DICT.addListener('state', d => {
+        if (d.listening) return;
+        // stopped natively (lock-screen Stop button, a phone call…): finish up like a normal Stop
+        if (d.error) recMsg = esc(d.error);
+        if (recording) stopDictation(true);
+        setTimeout(async () => { await this._drain(); this._done(); }, 900);   // last words arrive just after stopping
+      })
+    ]);
+    try { await NATIVE_DICT.start({ lang: this.lang, title: current()?.title || '' }); }
+    catch (e) {
+      this.onerror?.({ error: e?.code === 'not-allowed' ? 'not-allowed' : 'service-not-allowed' });
+      if (e?.message) { recMsg = esc(e.message); updateRecUI(); }
+      this._done();
+    }
+  }
+  stop() { NATIVE_DICT.stop().catch(() => {}); }
+  _done() { if (this._ended) return; this._ended = true; this._subs.forEach(s => s.remove?.()); this.onend?.(); }
+}
+const SR = NATIVE_DICT ? NativeSR : (window.SpeechRecognition || window.webkitSpeechRecognition);
 let rec = null, recording = false, recNoteId = null, recStart = 0, recTimer = null;
 let wakeLock = null, newPara = false, pendingSummary = false, recMsg = '', lastStart = 0, quickFails = 0, lastErr = '';
 
@@ -1228,7 +1260,7 @@ function startDictation() {
   r.onend = () => {
     if (rec !== r) return;
     let problem = '';
-    if (recording && document.visibilityState === 'hidden') { bgSince ||= Date.now(); return; }   // wait until the app is back
+    if (recording && !NATIVE_DICT && document.visibilityState === 'hidden') { bgSince ||= Date.now(); return; }   // wait until the app is back
     if (recording) {
       // the browser stops listening after pauses; start again, but give up if it keeps failing right away
       quickFails = Date.now() - lastStart < 2000 ? quickFails + 1 : 0;
@@ -1435,6 +1467,8 @@ function drawPocket(pocket, t, level) {
 
 let bgSince = 0, resumingAt = 0;
 document.addEventListener('visibilitychange', () => {
+  // native iPhone build: listening never pauses; just collect what was heard while the screen was locked
+  if (NATIVE_DICT) { if (document.visibilityState === 'visible' && rec instanceof NativeSR) rec._drain(); return; }
   if (document.visibilityState === 'hidden') { if (recording) bgSince ||= Date.now(); return; }
   if (!recording) return;
   keepAwake();
