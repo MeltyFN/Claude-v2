@@ -1,13 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- same as the app's header logo: deep navy tile with a gold round-ended cross -->
-  <defs>
-    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1f3a5f"/>
-      <stop offset="1" stop-color="#2c4f7c"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" fill="url(#navy)"/>
-  <g stroke="#c9a227" stroke-width="29" stroke-linecap="round" fill="none">
+  <!-- same as the app's header logo: #14161C tile with a #FAF9F6 round-ended cross -->
+  <rect width="512" height="512" fill="#14161C"/>
+  <g stroke="#FAF9F6" stroke-width="29" stroke-linecap="round" fill="none">
     <path d="M256 132V380"/>
     <path d="M184.3 203.8H327.7"/>
   </g>

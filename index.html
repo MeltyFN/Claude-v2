@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#12151c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161C" media="(prefers-color-scheme: dark)">
 <script>/* apply the chosen theme before anything is drawn (no flash) */
 try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.theme; if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
 </script>
@@ -23,27 +23,25 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f7f5f1; --panel: #ffffff; --solid: #ffffff; --ink: #1f2433; --muted: #6b6f7b;
-    --line: #e6e2da; --field: #faf8f4; --danger: #b3261e;
-    --sunrise: linear-gradient(135deg, #1f3a5f, #2c4f7c);
-    --brand: #1f3a5f; --brand2: #2c4f7c; --gold: #c9a227;
-    --radius: 16px; --shadow: 0 1px 2px rgba(31,36,51,.05), 0 8px 24px -14px rgba(31,36,51,.22);
-    --tag-bg: 94%; --tag-fg: 30%; --active: 96%;
-    --am-bg: #fbf0d0; --am-fg: #8a6410; --pm-bg: #e3eaf4; --pm-fg: #1f3a5f;
-    --c: #1f3a5f; color-scheme: light;
+    --ink-c: #14161C; --slate: #5A6070; --mist: #E6E8EE; --paper: #FAF9F6;
+    --bg: color-mix(in srgb, #E6E8EE 45%, #FAF9F6); --panel: #FAF9F6; --solid: #FAF9F6; --ink: #14161C; --muted: #5A6070;
+    --line: #E6E8EE; --field: color-mix(in srgb, #FAF9F6 55%, #ffffff); --danger: #b3261e;
+    --sunrise: #14161C; --brand: #14161C; --brand2: #5A6070; --on-brand: #FAF9F6; --accent: #5A6070;
+    --soft: #E6E8EE; --radius: 16px; --shadow: 0 1px 2px rgba(20,22,28,.05), 0 8px 24px -14px rgba(20,22,28,.22);
+    --c: #14161C; color-scheme: light;
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-    --bg: #12151c; --panel: #1a1e27; --solid: #1a1e27; --ink: #ece8e1; --muted: #a19c93;
-    --line: #2b303b; --field: #151922; --danger: #e5786d; --brand: #8fb0d9; --gold: #e0bb52;
-    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 26px -16px rgba(0,0,0,.7);
-    --tag-bg: 20%; --tag-fg: 80%; --active: 17%;
-    --am-bg: #3a2f14; --am-fg: #f0cf7a; --pm-bg: #1f2b3d; --pm-fg: #a9c3e6; color-scheme: dark; } }
+    --bg: #14161C; --panel: color-mix(in srgb, #5A6070 10%, #14161C); --solid: color-mix(in srgb, #5A6070 10%, #14161C);
+    --ink: #FAF9F6; --muted: color-mix(in srgb, #E6E8EE 72%, #5A6070); --line: color-mix(in srgb, #5A6070 40%, #14161C);
+    --field: color-mix(in srgb, #5A6070 6%, #14161C); --brand: #E6E8EE; --on-brand: #14161C; --accent: color-mix(in srgb, #E6E8EE 75%, #5A6070);
+    --soft: color-mix(in srgb, #5A6070 22%, #14161C); --danger: #e5786d;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 26px -16px rgba(0,0,0,.8); color-scheme: dark; --c: #E6E8EE; } }
   :root[data-theme="dark"] {
-    --bg: #12151c; --panel: #1a1e27; --solid: #1a1e27; --ink: #ece8e1; --muted: #a19c93;
-    --line: #2b303b; --field: #151922; --danger: #e5786d; --brand: #8fb0d9; --gold: #e0bb52;
-    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 26px -16px rgba(0,0,0,.7);
-    --tag-bg: 20%; --tag-fg: 80%; --active: 17%;
-    --am-bg: #3a2f14; --am-fg: #f0cf7a; --pm-bg: #1f2b3d; --pm-fg: #a9c3e6; color-scheme: dark; }
+    --bg: #14161C; --panel: color-mix(in srgb, #5A6070 10%, #14161C); --solid: color-mix(in srgb, #5A6070 10%, #14161C);
+    --ink: #FAF9F6; --muted: color-mix(in srgb, #E6E8EE 72%, #5A6070); --line: color-mix(in srgb, #5A6070 40%, #14161C);
+    --field: color-mix(in srgb, #5A6070 6%, #14161C); --brand: #E6E8EE; --on-brand: #14161C; --accent: color-mix(in srgb, #E6E8EE 75%, #5A6070);
+    --soft: color-mix(in srgb, #5A6070 22%, #14161C); --danger: #e5786d;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 26px -16px rgba(0,0,0,.8); color-scheme: dark; --c: #E6E8EE; }
   * { box-sizing: border-box; }
   html { background: var(--bg); }
   body { margin:0; font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased;
@@ -486,6 +484,55 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   .toast { background: #1f2433; color:#f7f5f1; }
   .welcome h2 { font-size:2.1rem; background:none; color: var(--brand); -webkit-text-fill-color: currentColor; animation:none; }
   label.check input:checked { background: var(--c); border-color: var(--c); }
+  /* =================== palette: #14161C #5A6070 #E6E8EE #FAF9F6 =================== */
+  header h1 .logo { color: var(--paper); background: var(--ink-c); box-shadow: 0 4px 12px -6px rgba(20,22,28,.6); }
+  :root[data-theme="dark"] header h1 .logo { color: var(--ink-c); background: var(--mist); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) header h1 .logo { color: var(--ink-c); background: var(--mist); } }
+  @keyframes halo { 50% { box-shadow: 0 4px 12px -6px rgba(20,22,28,.6), 0 0 0 4px color-mix(in srgb, #5A6070 22%, transparent); } }
+  header button.primary, header button.primary:hover, button.primary,
+  :root[data-theme="dark"] header button.primary { background: var(--brand); color: var(--on-brand); border-color: var(--brand); box-shadow: 0 4px 12px -6px rgba(20,22,28,.5); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) header button.primary { background: var(--brand); border-color: var(--brand); } }
+  header button.primary svg.ic { color: var(--on-brand); }
+  button:hover { border-color: var(--accent); }
+
+  .card, .card.c-main, .card.c-dict, .card.c-speak, .card.c-scrip, .card.c-notes, .card.c-act, .card.c-pray,
+  :root[data-theme="dark"] .card[class*="c-"] { --c: var(--ink); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .card[class*="c-"] { --c: var(--ink); } }
+  .card::before, .card.c-main::before { background: var(--accent); height:3px; opacity:1; }
+  .card.c-main::before { background: var(--ink); }
+  .card h2 .badge { color: var(--ink); background: var(--soft); }
+  .card h2 button { color: var(--ink); }
+  .card:focus-within { border-color: var(--accent); box-shadow: 0 10px 28px -16px rgba(20,22,28,.35); }
+  .section { border-color: var(--line); background: color-mix(in srgb, var(--soft) 30%, transparent); }
+
+  .note-item { border-left:3px solid var(--accent); }
+  .note-item.active { border-color: var(--ink); background: color-mix(in srgb, var(--soft) 55%, var(--panel)); box-shadow: 0 6px 16px -10px rgba(20,22,28,.45); }
+  .tag { background: var(--soft); color: var(--ink); }
+  .pill-ampm.am, .pill-ampm.pm { background: transparent; color: var(--muted); border:1px solid var(--line); }
+
+  .seg::before, .seg.pm::before { background: var(--brand); box-shadow: 0 3px 10px -5px rgba(20,22,28,.6); }
+  .seg button.on[data-p="AM"], .seg button.on[data-p="PM"] { color: var(--on-brand); }
+
+  .rec-btn { background: var(--brand); color: var(--on-brand); box-shadow: 0 4px 12px -6px rgba(20,22,28,.6); }
+  .rec-btn.recording { background: #b3261e; color:#FAF9F6; }
+  #sumBtn { background: var(--soft); color: var(--ink); border-color: var(--line); }
+  .eq i { background: linear-gradient(var(--accent), var(--ink)); }
+  .shine-wrap.shine::after { background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, #5A6070 22%, transparent) 50%, transparent 70%); }
+  label.check input:checked { background: var(--brand); border-color: var(--brand); }
+  label.check input:checked::after { border-color: var(--on-brand); }
+  .big-ic, dialog h3 svg.ic { color: var(--ink); }
+
+  .dd-list.v-leaves, .dd-list.v-fan, .dd-list.v-flip, .dd-list.v-horizon, .dd-list.v-scroll,
+  .dd-list.v-typewriter, .dd-list.v-bubbles { --vc: var(--ink); }
+  .dd-list.v-horizon { background: var(--solid); }
+  .dd-list.v-scroll { border-top-color: var(--ink); } .dd-list.v-scroll.up { border-bottom-color: var(--ink); }
+  .fly-chip { background: var(--brand); color: var(--on-brand); }
+  @keyframes land { 30% { transform: scale(1.02); box-shadow: 0 0 0 5px color-mix(in srgb, #5A6070 25%, transparent); } }
+  @keyframes halo-burst { from { box-shadow: 0 0 0 0 color-mix(in srgb, #5A6070 60%, transparent); } to { box-shadow: 0 0 0 20px transparent; } }
+  @keyframes rings { from { box-shadow: 0 0 0 0 color-mix(in srgb, #5A6070 55%, transparent), 0 0 0 0 color-mix(in srgb, #5A6070 35%, transparent); }
+    to { box-shadow: 0 0 0 14px transparent, 0 0 0 28px transparent; } }
+  .toast { background: #14161C; color: #FAF9F6; border:1px solid #5A6070; }
+  .welcome h2 { color: var(--ink); }
   @media (max-width: 760px) {
     header { gap:8px; padding:10px 12px; }
     header h1 { font-size:1.08rem; gap:7px; min-width:0; }
@@ -709,7 +756,7 @@ const SEED_SHAPES = [
 function seedBurst(el) {
   if (!el || REDUCE) return;
   const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  const colors = ['#1f3a5f', '#c9a227', '#8c2f39', '#2f6f73', '#5b7f4e', '#6b4c7a'];
+  const colors = ['#14161C', '#5A6070', '#3a3e4a', '#8a8f9c', '#14161C', '#5A6070'];
   for (let i = 0; i < 16; i++) {
     const d = document.createElement('div'), size = 9 + Math.random() * 11;
     d.className = 'seed';
@@ -1474,7 +1521,7 @@ function flyTo(from, to, icon, label) {
   if (REDUCE) return play(to, 'tap-land', 700);
   const r = from.getBoundingClientRect(), t = to.getBoundingClientRect();
   if (t.bottom < 0 || t.top > innerHeight) return play(to, 'tap-land', 700);  // off screen: just pulse it
-  const chip = document.createElement('div'), c = getComputedStyle(to.closest('.card') || to).getPropertyValue('--c') || '#1f3a5f';
+  const chip = document.createElement('div'), c = getComputedStyle(to.closest('.card') || to).getPropertyValue('--c') || '#14161C';
   chip.className = 'fly-chip'; chip.style.background = c; chip.innerHTML = ic(icon) + ' ' + esc(label);
   const x0 = r.left + r.width / 2, y0 = r.top + 16, x1 = t.left + 30, y1 = t.top + 12;
   chip.style.left = x0 + 'px'; chip.style.top = y0 + 'px'; document.body.appendChild(chip);
