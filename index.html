@@ -551,21 +551,32 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   /* pocket mode */
   .pocket-btn { background: var(--solid); }
   .pocket-btn[hidden] { display:none; }
-  #pocket { position:fixed; inset:0; z-index:200; background:#000; color:#5A6070; display:grid; place-items:center;
-    touch-action:none; user-select:none; -webkit-user-select:none; cursor:none; animation: pk-in .5s ease; }
-  #pocket.leaving { animation: pk-out .35s ease forwards; }
-  @keyframes pk-in { from { opacity:0; } } @keyframes pk-out { to { opacity:0; } }
-  #pocket .pk-inner { text-align:center; padding:24px; max-width:420px; transition: transform 3s ease; }
-  #pocket .pk-time { font: 600 1rem "Inter", system-ui, sans-serif; letter-spacing:.04em; color:#5A6070; margin:14px 0 10px; }
-  #pocket .pk-words { font-size:.95rem; line-height:1.5; color:#3a3e48; min-height:3em; }
-  #pocket .pk-hint { margin-top:28px; font-size:.75rem; color:#2c2f37; line-height:1.6; }
+  #pocket { position:fixed; inset:0; z-index:200; background:#000; color:#5A6070; overflow:hidden;
+    touch-action:none; user-select:none; -webkit-user-select:none; cursor:none; animation: pk-in .7s ease; }
+  #pocket.leaving { animation: pk-out .4s ease forwards; }
+  @keyframes pk-in { from { opacity:0; } } @keyframes pk-out { to { opacity:0; transform: scale(1.03); } }
+  #pocket .pk-canvas { position:absolute; inset:0; }
+  #pocket .pk-inner { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:24px; text-align:center; transition: transform 14s ease-in-out; }
+  #pocket .pk-time { position:absolute; top: calc(18% - 10px); display:inline-flex; align-items:center; gap:9px;
+    font: 600 .82rem "Inter", system-ui, sans-serif; letter-spacing:.12em; text-transform:uppercase; color:#5A6070; }
+  #pocket .pk-dot { width:7px; height:7px; border-radius:50%; background:#b3261e; box-shadow:0 0 10px #b3261e; animation: pulse 1.6s ease-in-out infinite; }
+  #pocket.stopped .pk-dot { animation:none; opacity:.5; box-shadow:none; }
   #pocket.stopped .pk-time { color:#b3261e; }
-  #pocket .pk-eq { display:inline-flex; gap:4px; height:22px; align-items:center; }
-  #pocket .pk-eq i { width:4px; height:100%; border-radius:4px; background:#3a3e48; animation: wave 1.1s ease-in-out infinite; }
-  #pocket .pk-eq i:nth-child(2) { animation-delay:-.3s; } #pocket .pk-eq i:nth-child(3) { animation-delay:-.6s; }
-  #pocket .pk-eq i:nth-child(4) { animation-delay:-.15s; } #pocket .pk-eq i:nth-child(5) { animation-delay:-.45s; }
-  #pocket.stopped .pk-eq i { animation:none; transform: scaleY(.25); }
-  #pocket .pk-hold { position:fixed; left:0; bottom:0; height:3px; width:0; background:#5A6070; }
+  #pocket .pk-wave-space { height: 160px; }
+  #pocket .pk-caption { position:absolute; top: calc(50% + 104px); left:50%; transform: translateX(-50%); width: min(88vw, 460px); }
+  #pocket .pk-lines { display:flex; flex-direction:column; gap:8px; }
+  #pocket .pk-line { font: 500 1.02rem/1.5 "Inter", system-ui, sans-serif; color:#8a8f9c; transition: opacity .8s, transform .8s, filter .8s; }
+  #pocket .pk-line[data-age="1"] { opacity:.45; transform: translateY(-2px) scale(.97); }
+  #pocket .pk-line[data-age="2"] { opacity:.18; transform: translateY(-4px) scale(.94); filter: blur(.5px); }
+  #pocket .pk-line span { display:inline-block; animation: pk-word .7s cubic-bezier(.2,.8,.3,1) both; animation-delay: var(--d); }
+  @keyframes pk-word { from { opacity:0; transform: translateY(10px); filter: blur(6px); } }
+  #pocket .pk-interim { margin-top:8px; min-height:1.4em; font-size:.9rem; font-style:italic; color:#3e424d; }
+  #pocket .pk-hint { position:absolute; left:0; right:0; bottom: calc(7% + env(safe-area-inset-bottom)); text-align:center;
+    font-size:.78rem; line-height:1.7; color:#3a3e48; opacity:.25; transition: opacity .8s; }
+  #pocket .pk-hint b { color:#5A6070; font-weight:600; }
+  #pocket.hint-on .pk-hint { opacity:1; }
+  #pocket .pk-hold { position:fixed; left:0; bottom:0; height:3px; width:0; background:#E6E8EE; opacity:.5; }
   #pocket.holding .pk-hold { width:100%; transition: width .9s linear; }
 
   /* ---------- iPhone screen edges (notch, home bar, landscape) ---------- */
@@ -1192,10 +1203,14 @@ function startDictation() {
   r.onresult = e => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) { quickFails = 0; appendTranscript(e.results[i][0].transcript); }
+      if (e.results[i].isFinal) { quickFails = 0; appendTranscript(e.results[i][0].transcript); pocketPhrase(e.results[i][0].transcript); }
       else interim += e.results[i][0].transcript;
     }
+    // every recognized word means someone is talking: push the visuals up
+    const grew = Math.max(0, interim.length - lastInterimLen); lastInterimLen = interim.length;
+    voiceKick(0.28 + Math.min(0.5, grew / 40));
     const el = $('interim'); if (el) el.textContent = interim;
+    pocketInterim(interim);
   };
   r.onerror = e => {
     // coming back from the background, some phones refuse to restart without a tap: pause instead of failing
@@ -1234,7 +1249,7 @@ function startDictation() {
   newPara = !!(n.transcript || '').trim();
   quickFails = 0; lastErr = ''; lastStart = Date.now();
   try { r.start(); } catch (err) { recording = false; recMsg = 'Could not start dictation: ' + esc(err.message); }
-  keepAwake();
+  keepAwake(); startVisuals();
   clearInterval(recTimer); recTimer = setInterval(updateRecUI, 1000);
   updateRecUI();
 }
@@ -1299,26 +1314,54 @@ document.addEventListener('pointerdown', e => { const el = $('island'); if (el?.
 function openPocket() {
   if ($('pocket')) return;
   const el = document.createElement('div'); el.id = 'pocket'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Pocket mode');
-  el.innerHTML = `<div class="pk-inner"><div class="pk-eq"><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="pk-time"></div><div class="pk-words"></div>
-    <div class="pk-hint">Keep the screen on. Don't press the power button.<br>Double-tap or press and hold to return</div>
-    <div class="pk-hold"></div></div>`;
+  el.innerHTML = `<canvas class="pk-canvas" aria-hidden="true"></canvas>
+    <div class="pk-inner">
+      <div class="pk-time"><span class="pk-dot"></span><span class="pk-clock"></span></div>
+      <div class="pk-wave-space"></div>
+      <div class="pk-caption" aria-live="polite"><div class="pk-lines"></div><div class="pk-interim"></div></div>
+    </div>
+    <div class="pk-hint">Keep the screen on, don't press the power button<br><b>Double-tap</b> or <b>press and hold</b> to return</div>
+    <div class="pk-hold"></div>`;
   document.body.appendChild(el); syncIsland();
   document.documentElement.requestFullscreen?.().catch(() => {});
   keepAwake();
-  let holdT = 0, lastTap = 0;
+  // seed the captions with the last thing said
+  const n = state.notes.find(x => x.id === recNoteId), last = splitSentences((n?.transcript || '')).slice(-2);
+  last.forEach(t => pocketPhrase(t, true));
+  let holdT = 0, lastTap = 0, hintT = 0;
+  const showHint = () => { el.classList.add('hint-on'); clearTimeout(hintT); hintT = setTimeout(() => el.classList.remove('hint-on'), 4000); };
+  showHint();
   const exit = () => closePocket();
   el.addEventListener('pointerdown', e => { e.preventDefault(); el.classList.add('holding'); holdT = setTimeout(exit, 900); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => el.addEventListener(t, () => { el.classList.remove('holding'); clearTimeout(holdT); }));
-  el.addEventListener('click', () => { const now = Date.now(); if (now - lastTap < 400) exit(); lastTap = now; });
+  el.addEventListener('click', () => { const now = Date.now(); if (now - lastTap < 400) exit(); else showHint(); lastTap = now; });
   el.addEventListener('contextmenu', e => e.preventDefault());
-  // move the text slowly so nothing burns into the screen
-  el._drift = setInterval(() => { el.querySelector('.pk-inner').style.transform = `translate(${(Math.random() - .5) * 60}px, ${(Math.random() - .5) * 120}px)`; }, 20000);
-  updatePocket();
+  // drift everything slowly so nothing burns into the screen
+  const drift = () => { el.querySelector('.pk-inner').style.transform = `translate(${(Math.random() - .5) * 40}px, ${(Math.random() - .5) * 70}px)`; };
+  el._drift = setInterval(drift, 15000);
+  sizePocketCanvas(); addEventListener('resize', sizePocketCanvas);
+  startVisuals(); updatePocket();
 }
+function sizePocketCanvas() {
+  const c = document.querySelector('#pocket .pk-canvas'); if (!c) return;
+  const d = Math.min(devicePixelRatio || 1, 2); c.width = innerWidth * d; c.height = innerHeight * d;
+  c.style.width = innerWidth + 'px'; c.style.height = innerHeight + 'px'; c.getContext('2d').setTransform(d, 0, 0, d, 0, 0);
+}
+// a finished phrase drifts in word by word; older lines float up and fade
+function pocketPhrase(text, instant = false) {
+  const box = document.querySelector('#pocket .pk-lines'); if (!box) return;
+  const words = String(text).trim().split(/\s+/).filter(Boolean); if (!words.length) return;
+  const line = document.createElement('div'); line.className = 'pk-line';
+  line.innerHTML = words.map((w, i) => `<span style="--d:${instant ? 0 : i * 70}ms">${esc(w)}</span>`).join(' ');
+  box.appendChild(line);
+  while (box.children.length > 3) box.firstElementChild.remove();
+  [...box.children].forEach((l, i, a) => l.dataset.age = a.length - 1 - i);
+  pocketInterim('');
+}
+function pocketInterim(t) { const el = document.querySelector('#pocket .pk-interim'); if (el) el.textContent = t; }
 function closePocket() {
   const el = $('pocket'); if (!el) return;
-  clearInterval(el._drift);
+  clearInterval(el._drift); removeEventListener('resize', sizePocketCanvas);
   if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   el.classList.add('leaving'); setTimeout(() => { el.remove(); syncIsland(); }, REDUCE ? 0 : 350);
 }
@@ -1326,9 +1369,68 @@ function updatePocket() {
   const el = $('pocket'); if (!el) return;
   const sec = Math.floor((Date.now() - recStart) / 1000);
   el.classList.toggle('stopped', !recording);
-  el.querySelector('.pk-time').textContent = recording ? `Listening · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : 'Dictation stopped';
-  const n = state.notes.find(x => x.id === recNoteId), t = (n?.transcript || '').replace(/\[[^\]]*\]/g, '').trim();
-  el.querySelector('.pk-words').textContent = recording ? (t.length > 90 ? '…' + t.slice(-90) : t) : (recMsg.replace(/<[^>]+>/g, '') || 'Double-tap to return');
+  if (recording) delete el.dataset.stopShown;
+  el.querySelector('.pk-clock').textContent = recording ? `Listening · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : 'Dictation stopped';
+  if (!recording && !el.dataset.stopShown) {
+    el.dataset.stopShown = 1;
+    pocketPhrase(recMsg.replace(/<[^>]+>/g, '').trim() || 'Double-tap to return to your notes');
+  }
+}
+
+/* ---------- Voice energy: drives the wave, glow and bars from what's being recognized ---------- */
+let vTarget = 0, vLevel = 0, lastInterimLen = 0, visRAF = 0, visT0 = 0, specks = [];
+function voiceKick(amount) { vTarget = Math.min(1, vTarget + amount); }
+function startVisuals() { if (!visRAF && !REDUCE) { visT0 = performance.now(); visRAF = requestAnimationFrame(visFrame); } }
+function visFrame(now) {
+  const pocket = $('pocket'), live = recording || pocket;
+  if (!live) { visRAF = 0; return; }
+  vTarget *= 0.965;                                   // talking fades out over about half a second of silence
+  vLevel += (vTarget - vLevel) * 0.08;                // smooth, springy follow
+  const t = (now - visT0) / 1000, level = recording ? vLevel : 0;
+  // little bars in the app and on the live island
+  document.querySelectorAll('#recStatus .eq i, #island .is-eq i').forEach((b, i) => {
+    const wob = 0.5 + 0.5 * Math.sin(t * (5 + i * 1.7) + i * 1.3);
+    b.style.animation = 'none';
+    b.style.transform = `scaleY(${(0.18 + 0.12 * Math.sin(t * 1.6 + i) + level * (0.35 + 0.55 * wob)).toFixed(3)})`;
+  });
+  if (pocket) drawPocket(pocket, t, level);
+  visRAF = requestAnimationFrame(visFrame);
+}
+function drawPocket(pocket, t, level) {
+  const c = pocket.querySelector('.pk-canvas'); if (!c) return;
+  const g = c.getContext('2d'), W = innerWidth, H = innerHeight, cy = H * 0.5;
+  g.clearRect(0, 0, W, H);
+  const stopped = !recording;
+  // soft glow that breathes with the voice
+  const breathe = 0.5 + 0.5 * Math.sin(t * 0.9);
+  const glowR = Math.min(W, H) * (0.32 + level * 0.18 + breathe * 0.03);
+  const grad = g.createRadialGradient(W / 2, cy, 0, W / 2, cy, glowR);
+  grad.addColorStop(0, stopped ? 'rgba(179,38,30,.10)' : `rgba(230,232,238,${0.035 + level * 0.07})`);
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, W, H);
+  // faint specks of light rising slowly
+  if (!specks.length) specks = Array.from({ length: 26 }, () => ({ x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.4, v: .004 + Math.random() * .012, a: .05 + Math.random() * .12, p: Math.random() * 6 }));
+  specks.forEach(s => {
+    s.y -= s.v * (0.4 + level) / 60; if (s.y < -0.02) { s.y = 1.02; s.x = Math.random(); }
+    g.globalAlpha = s.a * (0.6 + 0.4 * Math.sin(t * 1.3 + s.p));
+    g.fillStyle = '#E6E8EE'; g.beginPath(); g.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2); g.fill();
+  });
+  g.globalAlpha = 1;
+  // three flowing waves: calm breathing when quiet, swelling while someone talks
+  const amp = stopped ? 1.5 : 5 + 4 * breathe + level * Math.min(58, H * 0.07);
+  const layers = [
+    { k: 1.0, f: 1.6, sp: 1.3, w: 2.2, c: stopped ? 'rgba(179,38,30,.55)' : `rgba(230,232,238,${0.45 + level * 0.4})` },
+    { k: 0.7, f: 2.4, sp: -1.0, w: 1.6, c: stopped ? 'rgba(179,38,30,.3)' : 'rgba(90,96,112,.75)' },
+    { k: 0.45, f: 3.3, sp: 2.1, w: 1.2, c: stopped ? 'rgba(179,38,30,.18)' : `rgba(230,232,238,${0.12 + level * 0.18})` }];
+  layers.forEach(L => {
+    g.beginPath(); g.lineWidth = L.w; g.strokeStyle = L.c; g.lineCap = 'round';
+    for (let x = 0; x <= W; x += 4) {
+      const u = x / W, edge = Math.sin(Math.PI * u) ** 1.6;   // taper to the edges
+      const y = cy + edge * amp * L.k * (Math.sin(u * Math.PI * 2 * L.f + t * L.sp) + 0.35 * Math.sin(u * Math.PI * 7 - t * L.sp * 1.7));
+      x ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+  });
 }
 
 let bgSince = 0, resumingAt = 0;
