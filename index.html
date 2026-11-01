@@ -226,6 +226,7 @@
   label.check { text-transform:none; letter-spacing:0; font-weight:600; font-size:.85rem;
     display:flex; align-items:center; gap:6px; margin:0; }
   label.check input { width:auto; accent-color: var(--c); }
+  .checks { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
   .sum-head { display:flex; align-items:center; gap:8px; margin:16px 0 6px; }
   .sum-head label { margin:0; flex:1; }
 
@@ -497,9 +498,9 @@ let saveTimer;
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && Array.isArray(s.notes)) { s.settings ||= { autoSummary: true }; return s; }
+    if (s && Array.isArray(s.notes)) { s.settings ||= { autoSummary: true }; s.settings.autoFill ??= true; return s; }
   } catch {}
-  return { notes: [], speakers: [], eventTypes: [...DEFAULT_EVENTS], settings: { autoSummary: true } };
+  return { notes: [], speakers: [], eventTypes: [...DEFAULT_EVENTS], settings: { autoSummary: true, autoFill: true } };
 }
 function persist() { localStorage.setItem(KEY, JSON.stringify(state)); }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -722,7 +723,10 @@ function renderEditor() {
         <button id="recBtn" class="rec-btn ${recording ? 'recording' : ''}"></button>
         <span id="recStatus" class="saved"></span>
         <span style="flex:1"></span>
-        <label class="check"><input type="checkbox" id="autoSum" ${state.settings.autoSummary ? 'checked' : ''}> Auto-summarize when I stop</label>
+        <span class="checks">
+          <label class="check"><input type="checkbox" id="autoFill" ${state.settings.autoFill ? 'checked' : ''}> Auto-fill sections as I dictate</label>
+          <label class="check"><input type="checkbox" id="autoSum" ${state.settings.autoSummary ? 'checked' : ''}> Auto-summarize when I stop</label>
+        </span>
       </div>
       <div id="interim" class="interim no-print"></div>` : `
       <p class="hint no-print">Live dictation isn't supported in this browser. Try Chrome, Edge or Safari.
@@ -806,6 +810,7 @@ ed.addEventListener('input', e => {
 ed.addEventListener('change', e => {
   const n = current(); const t = e.target;
   if (t.id === 'autoSum') { state.settings.autoSummary = t.checked; persist(); return; }
+  if (t.id === 'autoFill') { state.settings.autoFill = t.checked; persist(); return; }
   if (t.dataset.f === 'eventType') {
     if (t.value === '__new') {
       const name = prompt('New event type name:')?.trim();
@@ -821,7 +826,10 @@ ed.addEventListener('click', e => {
   if (b.id === 'recBtn') { recording ? stopDictation() : startDictation(); }
   else if (b.id === 'sumBtn') {
     if (!(n.transcript || '').trim()) { recMsg = 'Nothing to summarize yet. Dictate, type or paste a transcript first.'; updateRecUI(); }
-    else if (!n.summaryEdited || !(n.summary || '').trim() || confirm('Replace your edited summary with a new one?')) makeSummary(n);
+    else {
+      if (!n.summaryEdited || !(n.summary || '').trim() || confirm('Replace your edited summary with a new one?')) makeSummary(n);
+      if (state.settings.autoFill) { recNoteId = n.id; liveCtx = newCtx(); finishAutoFill(); }
+    }
   }
   else if (b.id === 'addRefs') {
     const missing = missingRefs(n);
@@ -912,8 +920,9 @@ function startDictation() {
     if (recording) { setTimeout(() => { if (recording && rec === r) try { r.start(); } catch {} }, 250); return; }
     const el = $('interim'); if (el) el.textContent = '';
     if (pendingSummary) { pendingSummary = false; autoSummarize(); }
+    if (pendingFill) { pendingFill = false; finishAutoFill(); }
   };
-  rec = r; recording = true; pendingSummary = false; recNoteId = n.id; recStart = Date.now(); recMsg = '';
+  rec = r; recording = true; pendingSummary = false; pendingFill = false; liveCtx = newCtx(); recNoteId = n.id; recStart = Date.now(); recMsg = '';
   newPara = !!(n.transcript || '').trim();
   try { r.start(); } catch (err) { recording = false; recMsg = 'Could not start dictation: ' + esc(err.message); }
   keepAwake();
@@ -925,7 +934,11 @@ function stopDictation(summarize = true) {
   if (!recording) return;
   recording = false; clearInterval(recTimer);
   pendingSummary = summarize && state.settings.autoSummary;
-  try { rec.stop(); } catch { if (pendingSummary) { pendingSummary = false; autoSummarize(); } }
+  pendingFill = summarize && state.settings.autoFill;
+  try { rec.stop(); } catch {
+    if (pendingSummary) { pendingSummary = false; autoSummarize(); }
+    if (pendingFill) { pendingFill = false; finishAutoFill(); }
+  }
   if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
   updateRecUI();
 }
@@ -943,6 +956,7 @@ function appendTranscript(text) {
   const cur = (n.transcript || '').trimEnd();
   n.transcript = cur ? cur + (newPara ? '\n\n' : ' ') + t : t;
   newPara = false;
+  if (state.settings.autoFill) splitSentences(t).forEach(x => routeSentence(n, x, liveCtx));
   if (n.id === currentId) {
     const ta = document.querySelector('[data-f="transcript"]');
     if (ta) { ta.value = n.transcript; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
@@ -1006,6 +1020,15 @@ function splitSentences(text) {
 }
 
 function summarize(text) {
+  const { themes, refs, picked } = analyze(text);
+  const out = [];
+  if (themes.length) out.push('Key themes: ' + themes.join(', '));
+  if (refs.length) out.push('Scriptures mentioned: ' + refs.join('; '));
+  if (out.length) out.push('');
+  out.push('Main points:', ...picked.map(p => '• ' + p.s));
+  return out.join('\n');
+}
+function analyze(text) {
   const sents = splitSentences(text);
   const words = s => (s.toLowerCase().match(/[a-z']+/g) || []).map(w => w.replace(/'s$/, '').replace(/'/g, ''));
   // light stemming so "trust", "trusted", "trusting" count together; show the shortest form
@@ -1030,13 +1053,7 @@ function summarize(text) {
     : [...scored].sort((a, b) => b.score - a.score).slice(0, k).filter(p => p.score > 0).sort((a, b) => a.i - b.i);
   const themes = Object.entries(freq).filter(([w, c]) => c > 1 && !COMMON.has(shown[w]))
     .sort((a, b) => b[1] - a[1]).slice(0, 6).map(([w]) => shown[w]);
-  const refs = findScriptures(text);
-  const out = [];
-  if (themes.length) out.push('Key themes: ' + themes.join(', '));
-  if (refs.length) out.push('Scriptures mentioned: ' + refs.join('; '));
-  if (out.length) out.push('');
-  out.push('Main points:', ...picked.map(p => '• ' + p.s));
-  return out.join('\n');
+  return { themes, refs: findScriptures(text), picked };
 }
 
 function makeSummary(n) {
@@ -1130,6 +1147,153 @@ $('importFile').onchange = async e => {
   e.target.value = '';
 };
 
+
+/* ---------- Auto-fill: send what's said to the right part of the note ---------- */
+let pendingFill = false, liveCtx = null;
+const newCtx = () => ({ reading: null, quoteNext: false, counts: {} });
+const TITLE_WORDS = 'pastor|bishop|elder|reverend|rev\\.?|brother|sister|dr\\.?|doctor|minister|evangelist|apostle|prophet|prophetess|deacon|deaconess|mother|father|overseer|chaplain';
+const RX = {
+  prayer: /\b(let us pray|let'?s pray|pray (for|that|with|over|about)|we pray|i pray|bow (your|our) heads|prayer (request|for|list)|lift (them|him|her|it|this|that|us|up) (up )?(in|to the lord in) prayer|(father|lord|god),? (we|i) (ask|thank|come|pray)|in jesus'? name)\b/i,
+  action: /\b(this week|i challenge you|i want you to (go|start|take|make|write|call|find|read|spend|ask|forgive|serve)|your (homework|assignment)|go (and|home and)|take (time|a moment|some time) to|start (today|tonight|tomorrow|this)|make (a|it a) (commitment|point|decision)|commit to|apply this|step (one|two|three|1|2|3)|first step|next step|before next (sunday|week)|every (day|morning|night) this)\b/i,
+  quoteCue: /\b(write (this|that) down|say (it|this) with me|tell your neighbou?r|turn to (your|somebody|someone) and say|if you (remember|forget) (nothing|anything) else|don'?t miss this|catch this|listen to (me|this)|hear me|here'?s the (truth|thing|key))\b/i,
+  title: /(?:title of (?:my|the|today'?s|this(?: morning'?s| evening'?s)?) (?:message|sermon|word) is|(?:message|sermon|word) (?:today |tonight |this morning )?is (?:titled|called|entitled)|i(?:'ve| have)? (?:titled|called|entitled|named) (?:this|the|today'?s|my) (?:message|sermon))\s*[:,]?\s*["“]?([^.!?"”]{3,70})/i,
+  speaker: new RegExp(`(?:welcome|introduce|introducing|give it up for|receive|please welcome|our (?:speaker|preacher|guest) (?:today|this morning|tonight|this evening) is|my name is|i'?m|i am)\\s+(?:our\\s+(?:own\\s+)?|the\\s+)?((?:${TITLE_WORDS})\\s+[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)?)`, 'i'),
+  readCue: /\b(it says|it reads|says|reads|read with me|declares|tells us)\b[:,]?\s*$/i
+};
+const norm = x => (x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const has = (field, line) => norm(field).includes(norm(line));
+const titleCase = x => x.trim().replace(/\s+/g, ' ').replace(/\b([a-z])([a-z']*)/gi, (m, a, b, i) =>
+  (i > 0 && /^(a|an|the|of|in|on|and|or|to|for|by|at|with)$/i.test(m)) ? m.toLowerCase() : a.toUpperCase() + b.toLowerCase());
+const count = (ctx, k) => ctx.counts[k] = (ctx.counts[k] || 0) + 1;
+
+function routeSentence(n, sent, ctx) {
+  const s = sent.trim(); if (!s) return;
+  const changed = new Set();
+  // the verse being read right after a reference was announced
+  if (ctx.reading && !findScriptures(s).length && s.split(/\s+/).length >= 3) {
+    if (attachReading(n, ctx.reading, s)) { changed.add('scriptures'); count(ctx, 'readings'); }
+    ctx.reading = null;
+  } else ctx.reading = null;
+  // a quote announced by "write this down" etc. is the next sentence
+  if (ctx.quoteNext) { ctx.quoteNext = false; if (addToSection(n, /quote/i, 'Key Quotes', '“' + s.replace(/[.]$/, '') + '”')) { changed.add('sec:quote'); count(ctx, 'quotes'); } }
+
+  // scripture references (+ the words that follow them, if any)
+  for (const m of (s).matchAll(REF_RE)) {
+    const ref = findScriptures(m[0])[0]; if (!ref) continue;
+    if (addLine(n, 'scriptures', ref)) { changed.add('scriptures'); count(ctx, 'scriptures'); }
+    const after = s.slice(m.index + m[0].length).replace(/^[\s,:;-]+/, '');
+    const rest = after.replace(RX.readCue, '').replace(/^(it says|says|reads|it reads)\s*[:,]?\s*/i, '');
+    if (rest.split(/\s+/).filter(Boolean).length >= 4 && !findScriptures(rest).length) {
+      if (attachReading(n, ref, rest)) { changed.add('scriptures'); count(ctx, 'readings'); }
+    } else ctx.reading = ref;          // the reading will come in the next sentence
+  }
+  // sermon title
+  const tm = !n.title.trim() && s.match(RX.title);
+  if (tm) { n.title = titleCase(tm[1]); changed.add('title'); count(ctx, 'title'); }
+  // speaker introductions
+  const sm = s.match(RX.speaker);
+  if (sm) {
+    const name = titleCase(sm[1].replace(/\brev\b\.?/i, 'Reverend').replace(/\bdr\b\.?/i, 'Dr.'));
+    if (!n.speakers.some(x => norm(x.name) === norm(name))) {
+      const word = name.split(' ')[0];
+      const role = /^(Brother|Sister|Dr\.|Doctor|Mother|Father)$/.test(word) ? 'Guest Speaker' : word;
+      const empty = n.speakers.find(x => !x.name.trim());
+      if (empty) { empty.name = name; empty.role = empty.role || role; } else n.speakers.push({ name, role });
+      changed.add('speakers'); count(ctx, 'speakers');
+    }
+  }
+  // prayer > action > quote (one home per sentence)
+  if (RX.prayer.test(s)) { if (addLine(n, 'prayer', '• ' + s)) { changed.add('prayer'); count(ctx, 'prayer'); } }
+  else if (RX.action.test(s)) { if (addLine(n, 'actions', '• ' + s)) { changed.add('actions'); count(ctx, 'actions'); } }
+  else if (RX.quoteCue.test(s)) {
+    const body = s.replace(RX.quoteCue, '').replace(/^[\s,:;.!-]+/, '').trim();
+    if (body.split(/\s+/).length >= 5) { if (addToSection(n, /quote/i, 'Key Quotes', '“' + body.replace(/[.]$/, '') + '”')) { changed.add('sec:quote'); count(ctx, 'quotes'); } }
+    else ctx.quoteNext = true;
+  }
+  if (changed.size) showFilled(n, changed);
+}
+
+function addLine(n, field, line) {
+  if (has(n[field], line.replace(/^• /, ''))) return false;
+  n[field] = ((n[field] || '').trimEnd() ? n[field].trimEnd() + '\n' : '') + line;
+  return true;
+}
+function attachReading(n, ref, text) {
+  const lines = (n.scriptures || '').split('\n'), i = lines.findIndex(l => l.trim().toLowerCase() === ref.toLowerCase());
+  if (i < 0) return false;
+  const t = text.trim().replace(/[.]$/, '');
+  lines[i] = `${ref} — “${t[0].toUpperCase() + t.slice(1)}”`; n.scriptures = lines.join('\n');
+  return true;
+}
+function addToSection(n, rx, fallbackTitle, line) {
+  let sec = n.sections.find(x => rx.test(x.title));
+  if (!sec) { sec = { id: uid(), title: fallbackTitle, body: '' }; n.sections.push(sec); sec._new = true; }
+  if (has(sec.body, line.replace(/[“”]/g, ''))) return false;
+  sec.body = (sec.body.trimEnd() ? sec.body.trimEnd() + '\n' : '') + line;
+  return true;
+}
+
+// at the end: main points + anything that only makes sense with the whole transcript
+function finishAutoFill() {
+  const n = state.notes.find(x => x.id === recNoteId); if (!n || !(n.transcript || '').trim()) return;
+  const ctx = liveCtx || newCtx(); ctx.reading = null; ctx.quoteNext = false;
+  splitSentences(n.transcript).forEach(x => routeSentence(n, x, ctx));
+  let added = 0;
+  analyze(n.transcript).picked.forEach(p => { if (addToSection(n, /main point|point/i, 'Main Points', '• ' + p.s)) added++; });
+  if (added) { ctx.counts.points = (ctx.counts.points || 0) + added; showFilled(n, new Set(['sec:point'])); }
+  const c = ctx.counts, parts = [['scriptures', 'scripture'], ['readings', 'reading'], ['points', 'main point'], ['quotes', 'quote'],
+    ['actions', 'action step'], ['prayer', 'prayer point'], ['speakers', 'speaker'], ['title', 'title']]
+    .filter(([k]) => c[k]).map(([k, w]) => `${c[k]} ${w}${c[k] > 1 ? 's' : ''}`);
+  if (parts.length) { recMsg = (recMsg ? recMsg + ' · ' : '') + ic('check', 'draw-now') + ' Filled in ' + parts.join(', '); updateRecUI(); }
+  liveCtx = newCtx();
+}
+
+// update the page in place and fly a little chip from the transcript to each spot that changed
+function showFilled(n, changed) {
+  touch();
+  if (n.id !== currentId) return;
+  if ([...changed].some(k => k === 'speakers') || n.sections.some(x => x._new)) {
+    n.sections.forEach(x => delete x._new);
+    const keep = document.activeElement?.dataset?.f === 'transcript';
+    renderEditor(); if (keep) document.querySelector('[data-f="transcript"]')?.focus();
+  }
+  const from = document.querySelector('[data-f="transcript"]');
+  const spots = { scriptures: ['[data-f="scriptures"]', 'book', 'Scripture'], prayer: ['[data-f="prayer"]', 'candle', 'Prayer'],
+    actions: ['[data-f="actions"]', 'flag', 'Action step'], title: ['.title-input', 'quill', 'Title'], speakers: ['.c-speak', 'lectern', 'Speaker'],
+    'sec:quote': [n => `.section[data-i="${n.sections.findIndex(x => /quote/i.test(x.title))}"] textarea`, 'quill', 'Quote'],
+    'sec:point': [n => `.section[data-i="${n.sections.findIndex(x => /main point|point/i.test(x.title))}"] textarea`, 'quill', 'Main points'] };
+  let k = 0;
+  changed.forEach(key => {
+    const [sel, icon, label] = spots[key] || []; if (!sel) return;
+    const el = document.querySelector(typeof sel === 'function' ? sel(n) : sel); if (!el) return;
+    // sync the field's text without moving the cursor if the user is typing there
+    if (el.matches('textarea, input')) {
+      const val = key === 'title' ? n.title : key.startsWith('sec:') ? n.sections[+el.closest('.section').dataset.i].body : n[key];
+      if (el.value !== val) {
+        const a = el.selectionStart, b = el.selectionEnd, focused = document.activeElement === el;
+        el.value = val; if (el.tagName === 'TEXTAREA') grow(el);
+        if (focused) el.setSelectionRange(a, b);
+      }
+    }
+    setTimeout(() => flyTo(from, el, icon, label), (k++) * 140);
+  });
+  renderSumExtras();
+}
+function flyTo(from, to, icon, label) {
+  if (!from || !to) return;
+  if (REDUCE) return play(to, 'tap-land', 700);
+  const r = from.getBoundingClientRect(), t = to.getBoundingClientRect();
+  if (t.bottom < 0 || t.top > innerHeight) return play(to, 'tap-land', 700);  // off screen: just pulse it
+  const chip = document.createElement('div'), c = getComputedStyle(to.closest('.card') || to).getPropertyValue('--c') || '#557487';
+  chip.className = 'fly-chip'; chip.style.background = c; chip.innerHTML = ic(icon) + ' ' + esc(label);
+  const x0 = r.left + r.width / 2, y0 = r.top + 16, x1 = t.left + 30, y1 = t.top + 12;
+  chip.style.left = x0 + 'px'; chip.style.top = y0 + 'px'; document.body.appendChild(chip);
+  chip.animate([
+    { transform: 'translate(-50%,-50%) scale(.6)', opacity: 0 },
+    { transform: `translate(calc(-50% + ${(x1 - x0) * .5}px), calc(-50% + ${(y1 - y0) * .5 - 70}px)) scale(1.05) rotate(-3deg)`, opacity: 1, offset: .45 },
+    { transform: `translate(calc(-50% + ${x1 - x0}px), calc(-50% + ${y1 - y0}px)) scale(.7)`, opacity: 0 }
+  ], { duration: 900, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => { chip.remove(); play(to, 'tap-land', 700); };
+}
 /* ---------- Custom dropdowns: each one opens with its own animation ---------- */
 const ROLES = ['Pastor', 'Guest Speaker', 'Evangelist', 'Youth Pastor', 'Elder', 'Deacon', 'Worship Leader', 'Minister', 'Teacher'];
 const DD_VARIANT = { filterEvent: 'leaves', filterSpeaker: 'fan', filterPeriod: 'horizon', sortBy: 'flip', eventType: 'scroll' };
@@ -1299,7 +1463,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   if (e.target.matches('[data-f="date"]')) play(e.target, 'tap-flip', 800);
-  if (e.target.matches('#autoSum')) play(e.target.closest('label'), 'tap-check', 700);
+  if (e.target.matches('label.check input')) play(e.target.closest('label'), 'tap-check', 700);
 });
 
 // "Add to references": the verse flies up into the Scripture card
