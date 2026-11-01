@@ -236,6 +236,162 @@
   .welcome p { color:var(--muted); max-width:420px; margin:0 auto 20px; }
   @keyframes float { 50% { transform: translateY(-8px); } }
 
+
+  /* ---------- custom dropdowns ---------- */
+  .dd { position:relative; }
+  .dd-native { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; clip-path: inset(50%); }
+  .dd-btn { width:100%; justify-content:space-between; font-weight:600; background:var(--field); border-radius:12px;
+    padding:9px 12px; text-align:left; color:var(--ink); }
+  .dd-btn:hover { transform:none; }
+  .dd-label { display:inline-block; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .dd-chev { color: var(--muted); transition: transform .5s cubic-bezier(.5,1.7,.4,1), color .3s; }
+  .dd.open .dd-chev { transform: rotate(180deg); color: var(--c); }
+  .dd.open .dd-btn { border-color: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
+  .dd-list { --vc: var(--brand); position:fixed; z-index:80; margin:0; padding:6px; list-style:none; overflow:auto;
+    background:var(--panel); color:var(--ink); border:2px solid var(--line); border-radius:14px; font-weight:600;
+    box-shadow: 0 18px 40px -12px rgba(60,35,15,.4); transform-origin: top center; }
+  .dd-list.up { transform-origin: bottom center; }
+  .dd-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 12px;
+    border-radius:10px; cursor:pointer; transition: background .2s, padding .25s cubic-bezier(.3,1.6,.5,1); }
+  .dd-list li.act, .dd-list li:hover { background: color-mix(in srgb, var(--vc) 15%, transparent); padding-left:17px; }
+  .dd-list li.sel { color: var(--vc); }
+  .dd-list li.add { color: var(--muted); font-style:italic; border-top:1px dashed var(--line); margin-top:4px; }
+  .dd-list li svg.ic { color: var(--vc); }
+  .dd-list li, .dd-list.closing li { animation-fill-mode: both; }
+  .dd-list li { animation-delay: calc(var(--i) * 38ms); }
+  .dd-list.closing li { animation-delay: calc(var(--i) * 15ms); }
+  .dd-list.quick, .dd-list.quick li { animation:none !important; }
+  @keyframes dd-fade { from { opacity:0; } } @keyframes dd-fade-out { to { opacity:0; } }
+
+  /* falling leaves (event filter) */
+  .dd-list.v-leaves { --vc:#7d8b3a; animation: dd-fade .25s; }
+  .v-leaves li { animation: leaf .7s cubic-bezier(.3,.9,.4,1); }
+  .v-leaves.closing { animation: dd-fade-out .38s forwards; } .v-leaves.closing li { animation: leaf-out .35s ease-in; }
+  @keyframes leaf { 0% { opacity:0; transform: translate(-16px,-24px) rotate(-14deg); } 55% { opacity:1; transform: translate(6px,3px) rotate(4deg); }
+    80% { transform: translate(-2px,0) rotate(-1.5deg); } 100% { transform:none; } }
+  @keyframes leaf-out { to { opacity:0; transform: translate(12px,28px) rotate(14deg); } }
+  /* hand of cards (speaker filter) */
+  .dd-list.v-fan { --vc:#a86f5c; animation: dd-fade .2s; }
+  .v-fan li { transform-origin: 0 50%; animation: fan .6s cubic-bezier(.3,1.4,.5,1); }
+  .v-fan.closing { animation: dd-fade-out .38s forwards; } .v-fan.closing li { animation: fan-out .32s ease-in; }
+  @keyframes fan { from { opacity:0; transform: rotate(-30deg) translateY(-10px) scale(.9); } }
+  @keyframes fan-out { to { opacity:0; transform: rotate(-22deg) scale(.85); } }
+  /* sunrise / sunset (AM-PM filter) */
+  .dd-list.v-horizon { --vc:#c58a2c; animation: sunrise .55s cubic-bezier(.3,.8,.4,1);
+    background: linear-gradient(180deg, color-mix(in srgb, #e6c06a 18%, var(--panel)), var(--panel) 60%); }
+  .v-horizon li { animation: rise .55s cubic-bezier(.3,1.3,.5,1); }
+  .v-horizon.closing { animation: sunset .38s ease-in forwards; }
+  @keyframes sunrise { from { clip-path: circle(0% at 50% 100%); } to { clip-path: circle(150% at 50% 100%); } }
+  @keyframes sunset { from { clip-path: circle(150% at 50% 100%); } to { clip-path: circle(0% at 50% 100%); } }
+  @keyframes rise { from { opacity:0; transform: translateY(16px); } }
+  /* flipping index cards (sort) */
+  .dd-list.v-flip { --vc:#557487; perspective: 700px; animation: dd-fade .2s; }
+  .v-flip li { transform-origin: top center; animation: cardflip .6s cubic-bezier(.3,1.3,.5,1); }
+  .v-flip.closing { animation: dd-fade-out .38s forwards; } .v-flip.closing li { animation: cardflip-out .3s ease-in; }
+  @keyframes cardflip { from { opacity:0; transform: rotateX(-100deg); } 70% { transform: rotateX(14deg); } }
+  @keyframes cardflip-out { to { opacity:0; transform: rotateX(90deg); } }
+  /* unrolling scroll (event type) */
+  .dd-list.v-scroll { --vc:#b5523b; border-top:5px solid #9c4a2f; animation: unroll .55s cubic-bezier(.4,1.1,.4,1); }
+  .dd-list.v-scroll.up { border-top-width:2px; border-bottom:5px solid #9c4a2f; animation-name: unroll-up; }
+  .v-scroll li { animation: slide-r .45s ease-out; }
+  .v-scroll.closing { animation: rollup .35s ease-in forwards; }
+  @keyframes unroll { from { clip-path: inset(0 0 100% 0 round 14px); } to { clip-path: inset(0 0 0 0 round 14px); } }
+  @keyframes unroll-up { from { clip-path: inset(100% 0 0 0 round 14px); } to { clip-path: inset(0 0 0 0 round 14px); } }
+  @keyframes rollup { to { clip-path: inset(0 0 100% 0 round 14px); } }
+  @keyframes slide-r { from { opacity:0; transform: translateX(-14px); } }
+  /* typewriter (speaker names) */
+  .dd-list.v-typewriter { --vc:#6f8b62; animation: dd-fade .15s; font-family: "Courier New", ui-monospace, monospace; }
+  .v-typewriter li { animation: type .5s steps(14); }
+  .v-typewriter.closing { animation: dd-fade-out .2s forwards; }
+  @keyframes type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  /* bubbles (roles) */
+  .dd-list.v-bubbles { --vc:#5f8a86; animation: dd-fade .15s; }
+  .v-bubbles li { animation: bubble .55s cubic-bezier(.3,1.7,.5,1); }
+  .v-bubbles.closing { animation: dd-fade-out .3s forwards; } .v-bubbles.closing li { animation: bubble-pop .25s ease-out; }
+  @keyframes bubble { from { opacity:0; transform: scale(.3); border-radius:50%; } }
+  @keyframes bubble-pop { to { opacity:0; transform: scale(1.2); } }
+  .swap-in { animation: swap-in .45s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes swap-in { from { opacity:0; transform: translateY(80%); } }
+
+  /* ---------- a tap animation for every clickable thing ---------- */
+  .logo { cursor:pointer; }
+  .tap-wobble { animation: wobble .6s; }
+  @keyframes wobble { 25% { transform: rotate(-12deg); } 50% { transform: rotate(9deg); } 75% { transform: rotate(-4deg); } }
+  .tap-sliders svg circle:nth-of-type(1) { animation: knob-l .7s cubic-bezier(.3,1.5,.5,1); }
+  .tap-sliders svg circle:nth-of-type(2) { animation: knob-r .7s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes knob-l { 45% { transform: translateX(-6px); } } @keyframes knob-r { 45% { transform: translateX(6px); } }
+  .tap-jelly { animation: jelly .7s; } .tap-jelly svg { animation: spin-half .6s cubic-bezier(.3,1.4,.5,1); }
+  @keyframes jelly { 30% { transform: scale(1.15,.85); } 45% { transform: scale(.9,1.1); } 60% { transform: scale(1.05,.95); } 75% { transform: scale(.98,1.02); } }
+  @keyframes spin-half { to { transform: rotate(180deg); } }
+  .tap-sprout { animation: sprout .7s; }
+  @keyframes sprout { 35% { transform: translateY(-9px) scaleY(1.12); } 60% { transform: translateY(2px) scaleY(.94); } }
+  .tap-sheen::after { content:""; position:absolute; inset:0; pointer-events:none; transform: translateX(-120%);
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.8) 50%, transparent 70%); animation: sweep .7s ease forwards; }
+  .tap-sheen svg { animation: spin-full .7s cubic-bezier(.3,1.3,.5,1); }
+  @keyframes spin-full { to { transform: rotate(360deg); } }
+  .tap-spring { animation: spring .7s cubic-bezier(.3,1.8,.5,1); } .tap-spring svg { animation: spin-half .5s; }
+  @keyframes spring { 40% { transform: translateY(-8px) scale(1.06); } }
+  .tap-unfold { animation: unfold .6s; }
+  @keyframes unfold { 30% { transform: scaleX(.75); } 60% { transform: scaleX(1.12); } 80% { transform: scaleX(.97); } }
+  .tap-shoot-up svg { animation: shoot-up .5s; } .tap-shoot-down svg { animation: shoot-down .5s; }
+  @keyframes shoot-up { 40% { transform: translateY(-9px); opacity:0; } 41% { transform: translateY(9px); opacity:0; } }
+  @keyframes shoot-down { 40% { transform: translateY(9px); opacity:0; } 41% { transform: translateY(-9px); opacity:0; } }
+  .tap-spin-out svg { animation: spin-out .4s forwards; }
+  @keyframes spin-out { to { transform: rotate(270deg) scale(0); } }
+  .tap-shake { animation: shake .45s; }
+  @keyframes shake { 20% { transform: translateX(-4px) rotate(-10deg); } 40% { transform: translateX(4px) rotate(10deg); }
+    60% { transform: translateX(-3px) rotate(-6deg); } 80% { transform: translateX(2px) rotate(3deg); } }
+  .tap-bookmark svg { animation: bookmark .6s; }
+  @keyframes bookmark { 30% { transform: translateY(-7px); } 60% { transform: translateY(2px); } }
+  .fly-chip { position:fixed; z-index:90; pointer-events:none; display:flex; align-items:center; gap:6px; padding:6px 12px;
+    border-radius:999px; background:#557487; color:#fff; font-weight:800; font-size:.85rem; box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); }
+  .tap-land { animation: land .7s; }
+  @keyframes land { 30% { transform: scale(1.03); box-shadow: 0 0 0 6px rgba(85,116,135,.3); } }
+  .tap-copy svg rect { animation: copy-f .6s; } .tap-copy svg path { animation: copy-b .6s; }
+  @keyframes copy-f { 45% { transform: translate(-3px,-3px); } } @keyframes copy-b { 45% { transform: translate(2px,2px); } }
+  .tap-layers svg path:first-child { animation: lay-up .6s; } .tap-layers svg path:last-child { animation: lay-dn .6s; }
+  @keyframes lay-up { 45% { transform: translateY(-5px); } } @keyframes lay-dn { 45% { transform: translateY(3px); } }
+  .tap-trash svg path:nth-child(-n+2) { transform-box: view-box; transform-origin: 4px 7px; animation: lid .8s; }
+  @keyframes lid { 30%, 60% { transform: rotate(-28deg) translateY(-2px); } }
+  .tap-print svg > :nth-child(3) { animation: feed .8s; } .tap-print svg > :nth-child(1) { animation: feed-top .8s; }
+  @keyframes feed { 50% { transform: translateY(4px); } } @keyframes feed-top { 50% { transform: translateY(-2px); } }
+  .tap-stamp { animation: stamp .45s; }
+  @keyframes stamp { 30% { transform: scale(.82) rotate(-4deg); } 60% { transform: scale(1.08) rotate(2deg); } }
+  .stamped { animation: stamped .6s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes stamped { from { opacity:0; transform: scale(1.4) rotate(-3deg); } }
+  .tap-drop svg > :nth-child(-n+2) { animation: drop .6s; } .tap-lift svg > :nth-child(-n+2) { animation: lift .6s; }
+  @keyframes drop { 50% { transform: translateY(5px); } } @keyframes lift { 50% { transform: translateY(-5px); } }
+  .tap-flick svg { animation: flick .3s forwards; }
+  @keyframes flick { to { transform: rotate(-90deg) scale(.5); } }
+  .tap-squish { animation: squish .35s; }
+  @keyframes squish { 40% { transform: scale(.97,.9); } }
+  header h1 .logo.tap-halo { animation: halo-burst .9s ease-out; } .tap-halo svg { animation: glow-cross .9s; }
+  @keyframes halo-burst { from { box-shadow: 0 0 0 0 rgba(255,236,190,.85), 0 0 0 0 rgba(255,236,190,.5); }
+    to { box-shadow: 0 0 0 16px rgba(255,236,190,0), 0 0 0 32px rgba(255,236,190,0); } }
+  @keyframes glow-cross { 40% { transform: scale(1.3); filter: drop-shadow(0 0 6px #fff); } }
+  .note-item.tap-page { transform-origin: left center; animation: page .6s ease; }
+  @keyframes page { 30% { transform: perspective(600px) rotateY(-18deg); } }
+  .rec-btn.tap-rings, .rec-btn.recording.tap-rings { animation: rings 1s ease-out; }
+  @keyframes rings { from { box-shadow: 0 0 0 0 rgba(181,82,59,.6), 0 0 0 0 rgba(201,138,58,.45); }
+    to { box-shadow: 0 0 0 16px rgba(181,82,59,0), 0 0 0 32px rgba(201,138,58,0); } }
+  .rec-btn.tap-squash { animation: squash .5s; }
+  @keyframes squash { 30% { transform: scale(1.12,.84); } 55% { transform: scale(.94,1.06); } 80% { transform: scale(1.02,.98); } }
+  .tap-flip { animation: flip-x .7s cubic-bezier(.4,1.2,.5,1); }
+  @keyframes flip-x { from { transform: perspective(500px) rotateX(0); } to { transform: perspective(500px) rotateX(360deg); } }
+  .tap-filled { animation: filled .7s; }
+  @keyframes filled { 30% { background: color-mix(in srgb, var(--c) 22%, var(--field)); transform: scale(1.02); } }
+  label.check input { appearance:none; -webkit-appearance:none; flex:none; width:20px; height:20px; padding:0; margin:0;
+    border-radius:6px; display:grid; place-items:center; cursor:pointer; transition: background .25s, border-color .25s; }
+  label.check input:checked { background: var(--c); border-color: var(--c); }
+  label.check input:checked::after { content:""; width:9px; height:5px; border-left:2.5px solid #fff; border-bottom:2.5px solid #fff;
+    transform: translateY(-1px) rotate(-45deg); animation: tick .3s ease-out; }
+  @keyframes tick { from { width:0; height:0; } }
+  .tap-check input { animation: chk-pop .5s cubic-bezier(.3,1.8,.5,1); }
+  @keyframes chk-pop { 40% { transform: scale(1.35) rotate(-12deg); } }
+  dialog.folding { animation: fold .32s ease-in forwards; }
+  dialog.folding::backdrop { animation: fade-out .32s forwards; }
+  @keyframes fold { to { opacity:0; transform: perspective(800px) rotateX(28deg) scale(.85) translateY(30px); } }
+  @keyframes fade-out { to { opacity:0; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { animation: none !important; transition: none !important; } }
 
   .menu-btn { display:none; }
@@ -381,7 +537,8 @@ const ICONS = {
   upload: '<path d="M12 15.5v-12"/><path d="M7 8.5l5-5 5 5"/><path d="M4.5 20.5h15"/>',
   tag: '<path d="M3.5 12V4.5H11l9.5 9.5-7 7z"/><circle cx="7.8" cy="8.3" r="1.3"/>',
   archive: '<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v11h14V9"/><path d="M10 13h4"/>',
-  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  chev: '<path d="M6 9.5l6 6 6-6"/>'
 };
 function ic(name, cls = '') {
   const body = (ICONS[name] || '').replace(/<(path|circle|rect)/g, '<$1 pathLength="1"');
@@ -484,6 +641,7 @@ function renderFilters() {
   const speakers = [...new Set(state.notes.flatMap(n => n.speakers.map(s => s.name.trim())).filter(Boolean))].sort();
   fe.innerHTML = '<option value="">All events</option>' + events.map(e => `<option ${e===ev?'selected':''}>${esc(e)}</option>`).join('');
   fs.innerHTML = '<option value="">All speakers</option>' + speakers.map(s => `<option ${s===sp?'selected':''}>${esc(s)}</option>`).join('');
+  [fe, fs].forEach(syncSelect);
 }
 
 let listAnimate = true, justAdded = null;
@@ -533,7 +691,7 @@ function renderEditor() {
   if (!n) {
     $('editor').innerHTML = `<div class="card c-main welcome"><div class="big">📖🌿</div><h2>Welcome!</h2>
       <p>Capture every message: speakers, event types, dates, AM/PM services, live dictation and automatic summaries.</p>
-      <button class="primary" onclick="seedBurst(this); newNote()">+ Start your first note</button></div>`;
+      <button class="primary" onclick="startFirst(this)">+ Start your first note</button></div>`;
     return;
   }
   const events = [...new Set([...state.eventTypes, n.eventType].filter(Boolean))];
@@ -581,8 +739,8 @@ function renderEditor() {
       <div id="speakers">
         ${n.speakers.map((s, i) => `
           <div class="speaker-row" data-i="${i}">
-            <input list="speakerOptions" data-s="name" placeholder="Name" value="${esc(s.name)}">
-            <input list="roleOptions" data-s="role" placeholder="Role" value="${esc(s.role)}">
+            <input data-s="name" placeholder="Name" autocomplete="off" aria-autocomplete="list" value="${esc(s.name)}">
+            <input data-s="role" placeholder="Role" autocomplete="off" aria-autocomplete="list" value="${esc(s.role)}">
             <button class="icon danger no-print" data-del-speaker="${i}" title="Remove">${ic('x')}</button>
           </div>`).join('')}
       </div>
@@ -626,7 +784,7 @@ function renderEditor() {
       <span class="spacer" style="flex:1"></span>
       <span class="saved" id="savedMsg"></span>
     </div>`;
-  autosize(); renderSumExtras(); updateRecUI();
+  autosize(); renderSumExtras(); updateRecUI(); enhanceSelects();
 }
 
 function autosize() {
@@ -686,7 +844,7 @@ ed.addEventListener('click', e => {
   else if (b.dataset.delSection) {
     const i = +b.dataset.delSection, s = n.sections[i];
     if (!s.body.trim() || confirm(`Delete section “${s.title}”?`))
-      animateOut(b.closest('.section'), () => { n.sections.splice(i, 1); touch(); renderEditor(); });
+      crumple(b.closest('.section'), () => { n.sections.splice(i, 1); touch(); renderEditor(); });
   }
   else if (b.dataset.move) {
     const [i, d] = b.dataset.move.split(':').map(Number); const j = i + d;
@@ -694,16 +852,18 @@ ed.addEventListener('click', e => {
       flash(`.section[data-i="${j}"]`); }
   }
   else if (b.id === 'delBtn') {
-    if (confirm('Delete this note permanently?')) {
+    if (confirm('Delete this note permanently?')) fallAway(() => {
       state.notes = state.notes.filter(x => x.id !== n.id); currentId = state.notes[0]?.id || null; persist(); render();
-    }
+    });
   }
   else if (b.id === 'dupBtn') {
     const copy = JSON.parse(JSON.stringify(n)); copy.id = uid(); copy.title = (n.title || 'Untitled') + ' (copy)';
     state.notes.unshift(copy); currentId = copy.id; persist(); render();
   }
   else if (b.id === 'copyBtn') {
-    navigator.clipboard.writeText(noteToText(n)).then(() => { b.innerHTML = ic('check', 'draw-now') + 'Copied'; setTimeout(() => b.innerHTML = ic('copy') + 'Copy as text', 1500); });
+    const done = msg => { b.innerHTML = msg; setTimeout(() => b.innerHTML = ic('copy') + 'Copy as text', 1600); };
+    (navigator.clipboard ? navigator.clipboard.writeText(noteToText(n)) : Promise.reject())
+      .then(() => done(ic('check', 'draw-now') + 'Copied'), () => done(ic('x') + 'Copy blocked'));
   }
 });
 
@@ -924,15 +1084,25 @@ function renderManage() {
   $('eventList').innerHTML = li(state.eventTypes, 'eventTypes');
 }
 $('manageBtn').onclick = () => { renderManage(); $('manageDlg').showModal(); };
-$('closeManage').onclick = () => { $('manageDlg').close(); render(); };
+$('closeManage').onclick = () => {
+  const d = $('manageDlg'), fin = () => { d.classList.remove('folding'); d.close(); render(); };
+  if (REDUCE) return fin();
+  d.classList.add('folding'); setTimeout(fin, 320);
+};
 $('manageDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-rm]'); if (!b) return;
-  const [k, i] = b.dataset.rm.split(':'); state[k].splice(+i, 1); persist(); renderManage();
+  const [k, i] = b.dataset.rm.split(':'), row = b.closest('li');
+  const go = () => { state[k].splice(+i, 1); persist(); renderManage(); };
+  if (REDUCE) return go();
+  row.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(-70px) rotate(-3deg)', opacity: 0 }],
+    { duration: 300, easing: 'ease-in', fill: 'forwards' }).onfinish = go;
 });
 function addTo(kind, input) {
   const v = $(input).value.trim(); if (!v) return;
   if (!state[kind].includes(v)) state[kind].push(v);
   $(input).value = ''; persist(); renderManage(); renderDatalist();
+  const list = kind === 'speakers' ? '#speakerList' : '#eventList';
+  play(document.querySelector(`${list} li:last-child`), 'stamped', 700);
 }
 $('addSpeakerBtn').onclick = () => addTo('speakers', 'newSpeaker');
 $('addEventBtn').onclick = () => addTo('eventTypes', 'newEvent');
@@ -960,6 +1130,214 @@ $('importFile').onchange = async e => {
   e.target.value = '';
 };
 
+/* ---------- Custom dropdowns: each one opens with its own animation ---------- */
+const ROLES = ['Pastor', 'Guest Speaker', 'Evangelist', 'Youth Pastor', 'Elder', 'Deacon', 'Worship Leader', 'Minister', 'Teacher'];
+const DD_VARIANT = { filterEvent: 'leaves', filterSpeaker: 'fan', filterPeriod: 'horizon', sortBy: 'flip', eventType: 'scroll' };
+let PANEL = null;   // the one open dropdown list: { el, anchor, items, active, onPick, variant }
+
+function openPanel(anchor, items, variant, onPick, selected = -1, quick = false) {
+  const reuse = PANEL && PANEL.anchor === anchor;
+  if (PANEL && !reuse) closePanel(true);
+  const el = reuse ? PANEL.el : document.createElement('ul');
+  el.className = `dd-list v-${variant}${quick || reuse ? ' quick' : ''}`;
+  el.setAttribute('role', 'listbox');
+  el.innerHTML = items.map((it, i) => `<li role="option" id="ddo-${i}" data-i="${i}" style="--i:${Math.min(i, 12)}"
+      class="${i === selected ? 'sel' : ''}${it.value === '__new' ? ' add' : ''}" aria-selected="${i === selected}">
+      <span>${esc(it.label)}</span>${i === selected ? ic('check', 'draw-now') : ''}</li>`).join('');
+  if (!reuse) document.body.appendChild(el);
+  PANEL = { el, anchor, items, active: selected, onPick, variant };
+  placePanel(); setActive(selected);
+  anchor.setAttribute('aria-expanded', 'true');
+  anchor.closest('.dd')?.classList.add('open');
+}
+function placePanel() {
+  if (!PANEL) return;
+  const r = PANEL.anchor.getBoundingClientRect(), el = PANEL.el;
+  el.style.left = Math.max(8, Math.min(r.left, innerWidth - Math.max(r.width, 200) - 8)) + 'px';
+  el.style.minWidth = Math.max(r.width, 180) + 'px';
+  const below = innerHeight - r.bottom - 12, above = r.top - 12, up = below < 220 && above > below;
+  el.style.maxHeight = Math.min(330, up ? above : below) + 'px';
+  el.style.top = up ? '' : (r.bottom + 6) + 'px';
+  el.style.bottom = up ? (innerHeight - r.top + 6) + 'px' : '';
+  el.classList.toggle('up', up);
+}
+function closePanel(instant = false) {
+  if (!PANEL) return;
+  const { el, anchor } = PANEL; PANEL = null;
+  anchor.setAttribute('aria-expanded', 'false'); anchor.removeAttribute('aria-activedescendant');
+  anchor.closest('.dd')?.classList.remove('open');
+  if (instant || REDUCE) return el.remove();
+  el.classList.add('closing'); el.style.pointerEvents = 'none';
+  setTimeout(() => el.remove(), 380);
+}
+function setActive(i) {
+  if (!PANEL) return;
+  PANEL.active = i;
+  PANEL.el.querySelectorAll('li').forEach(li => li.classList.toggle('act', +li.dataset.i === i));
+  const li = PANEL.el.querySelector(`li[data-i="${i}"]`);
+  if (li) { li.scrollIntoView({ block: 'nearest' }); PANEL.anchor.setAttribute('aria-activedescendant', li.id); }
+}
+function pickPanel(i) {
+  if (!PANEL || !PANEL.items[i]) return;
+  const { onPick, items } = PANEL; closePanel(); onPick(items[i]);
+}
+document.addEventListener('pointerdown', e => {
+  if (PANEL && !PANEL.el.contains(e.target) && !PANEL.anchor.contains(e.target)) closePanel();
+});
+document.addEventListener('click', e => {
+  const li = e.target.closest('.dd-list li'); if (li && PANEL && PANEL.el.contains(li)) pickPanel(+li.dataset.i);
+});
+document.addEventListener('mousedown', e => { if (e.target.closest('.dd-list')) e.preventDefault(); }); // keep focus in the field
+window.addEventListener('resize', () => closePanel(true));
+document.addEventListener('scroll', e => { if (PANEL && !PANEL.el.contains(e.target)) placePanel(); }, true);
+
+// turn a <select> into an animated dropdown (the real select stays, hidden, so everything else keeps working)
+function enhanceSelects() {
+  document.querySelectorAll('select:not(.dd-native)').forEach(sel => {
+    const variant = DD_VARIANT[sel.id] || DD_VARIANT[sel.dataset.f] || 'leaves';
+    const wrap = document.createElement('div'); wrap.className = `dd v-${variant}`;
+    sel.before(wrap); wrap.appendChild(sel); sel.classList.add('dd-native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dd-btn';
+    btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = `<span class="dd-label"></span>${ic('chev', 'dd-chev')}`;
+    wrap.appendChild(btn); syncSelect(sel);
+  });
+}
+function syncSelect(sel) {
+  const lab = sel.closest('.dd')?.querySelector('.dd-label'); if (!lab) return;
+  const t = sel.selectedOptions[0]?.text || '';
+  if (lab.textContent !== t) lab.textContent = t;
+}
+function openSelect(btn) {
+  const sel = btn.closest('.dd').querySelector('select'), variant = btn.closest('.dd').className.match(/v-(\w+)/)[1];
+  const items = [...sel.options].map(o => ({ label: o.text, value: o.value }));
+  openPanel(btn, items, variant, it => {
+    sel.value = it.value; syncSelect(sel);
+    const lab = btn.querySelector('.dd-label'); play(lab, 'swap-in', 500);
+    sel.dispatchEvent(new Event('input', { bubbles: true })); sel.dispatchEvent(new Event('change', { bubbles: true }));
+    btn.isConnected && btn.focus();
+  }, sel.selectedIndex);
+}
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.dd-btn'); if (!btn) return;
+  PANEL && PANEL.anchor === btn ? closePanel() : openSelect(btn);
+});
+document.addEventListener('keydown', e => {
+  const btn = e.target.closest?.('.dd-btn'), inp = e.target.closest?.('[data-s]');
+  if (!btn && !inp) return;
+  const open = PANEL && PANEL.anchor === e.target, n = open ? PANEL.items.length : 0;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!open) return btn ? openSelect(btn) : suggest(inp, true);
+    setActive((PANEL.active + (e.key === 'ArrowDown' ? 1 : -1) + n) % n);
+  } else if ((e.key === 'Enter' || (btn && e.key === ' ')) && open && PANEL.active >= 0) { e.preventDefault(); pickPanel(PANEL.active); }
+  else if (btn && (e.key === 'Enter' || e.key === ' ') && !open) { e.preventDefault(); openSelect(btn); }
+  else if (e.key === 'Escape' && open) { e.preventDefault(); closePanel(); }
+  else if (e.key === 'Tab' && open) closePanel(true);
+});
+
+// speaker name / role suggestions
+function suggest(inp, force = false) {
+  const kind = inp.dataset.s, q = inp.value.trim().toLowerCase();
+  const pool = kind === 'name' ? state.speakers : ROLES;
+  const items = pool.filter(x => (force || !q || x.toLowerCase().includes(q)) && x.toLowerCase() !== q).slice(0, 8).map(x => ({ label: x, value: x }));
+  if (!items.length) { if (PANEL && PANEL.anchor === inp) closePanel(); return; }
+  openPanel(inp, items, kind === 'name' ? 'typewriter' : 'bubbles', it => {
+    inp.value = it.value; inp.dispatchEvent(new Event('input', { bubbles: true })); play(inp, 'tap-filled', 700);
+  }, -1, PANEL && PANEL.anchor === inp);
+}
+document.addEventListener('focusin', e => { const inp = e.target.closest('[data-s]'); if (inp) suggest(inp, true); });
+document.addEventListener('input', e => { const inp = e.target.closest('[data-s]'); if (inp && e.isTrusted) suggest(inp); });
+document.addEventListener('focusout', e => {
+  const inp = e.target.closest('[data-s]'); if (inp) setTimeout(() => { if (PANEL && PANEL.anchor === inp && document.activeElement !== inp) closePanel(); }, 120);
+});
+
+/* ---------- A unique tap animation for everything you can click ---------- */
+function play(el, cls, ms = 800) {
+  if (!el || REDUCE) return;
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+  clearTimeout(el['_t' + cls]); el['_t' + cls] = setTimeout(() => el.classList.remove(cls), ms);
+}
+// [how to find the button, how to find it again after a re-render, animation class]
+const TAPS = [
+  ['#menuBtn', () => $('menuBtn'), 'tap-wobble'],
+  ['#manageBtn', () => $('manageBtn'), 'tap-sliders'],
+  ['#newBtn', () => $('newBtn'), 'tap-jelly'],
+  ['#sumBtn', () => $('sumBtn'), 'tap-sheen'],
+  ['#addSpeaker', () => $('addSpeaker'), 'tap-spring'],
+  ['#addSection', () => $('addSection'), 'tap-unfold'],
+  ['[data-move$=":-1"]', b => document.querySelector(`[data-move="${b.dataset.move}"]`), 'tap-shoot-up'],
+  ['[data-move$=":1"]', b => document.querySelector(`[data-move="${b.dataset.move}"]`), 'tap-shoot-down'],
+  ['[data-del-speaker]', null, 'tap-spin-out'],
+  ['[data-del-section]', null, 'tap-shake'],
+  ['#addRefs', null, 'tap-bookmark'],
+  ['#copyBtn', () => $('copyBtn'), 'tap-copy'],
+  ['#dupBtn', () => $('dupBtn'), 'tap-layers'],
+  ['#delBtn', null, 'tap-trash'],
+  ['button[onclick*="print"]', null, 'tap-print'],
+  ['#addSpeakerBtn, #addEventBtn', null, 'tap-stamp'],
+  ['#exportBtn', null, 'tap-drop'],
+  ['#importBtn', null, 'tap-lift'],
+  ['[data-rm]', null, 'tap-flick'],
+  ['.dd-btn', null, 'tap-squish'],
+  ['.logo', null, 'tap-halo'],
+  ['.note-item', b => document.querySelector(`.note-item[data-id="${b.dataset.id}"]`), 'tap-page'],
+];
+let tapRect = null;
+document.addEventListener('click', e => {   // capture: remember where the tap happened before handlers re-render
+  const t = e.target.closest('#addRefs'); tapRect = t ? { r: t.getBoundingClientRect(), text: missingRefs(current() || {}).join('; ') } : null;
+}, true);
+document.addEventListener('click', e => {
+  for (const [sel, refind, cls] of TAPS) {
+    const hit = e.target.closest(sel); if (!hit) continue;
+    const el = hit.isConnected ? hit : refind && refind(hit);
+    play(el, cls, 900);
+    if (sel === '#addRefs' && tapRect) flyRefs(tapRect);
+    break;
+  }
+  if (e.target.closest('#recBtn')) play($('recBtn'), recording ? 'tap-rings' : 'tap-squash', 1100);
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('[data-f="date"]')) play(e.target, 'tap-flip', 800);
+  if (e.target.matches('#autoSum')) play(e.target.closest('label'), 'tap-check', 700);
+});
+
+// "Add to references": the verse flies up into the Scripture card
+function flyRefs({ r, text }) {
+  const target = document.querySelector('[data-f="scriptures"]'); if (!target || REDUCE || !text) return;
+  const t = target.getBoundingClientRect(), chip = document.createElement('div');
+  chip.className = 'fly-chip'; chip.innerHTML = ic('book') + ' ' + esc(text); document.body.appendChild(chip);
+  const dx = t.left + 20 - r.left, dy = t.top + 14 - r.top;
+  chip.style.left = r.left + 'px'; chip.style.top = r.top + 'px';
+  chip.animate([
+    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+    { transform: `translate(${dx * .5}px, ${dy * .5 - 90}px) scale(1.08) rotate(-4deg)`, opacity: 1, offset: .5 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.7)`, opacity: 0 }
+  ], { duration: 850, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => { chip.remove(); play(target, 'tap-land', 700); };
+}
+
+// welcome button: let it sprout for a moment before the first note opens
+function startFirst(btn) { seedBurst(btn); play(btn, 'tap-sprout', 900); setTimeout(newNote, REDUCE ? 0 : 420); }
+
+// deleting a note: its cards tumble away first
+function fallAway(done) {
+  const cards = [...document.querySelectorAll('#editor .card')];
+  if (REDUCE || !cards.length) return done();
+  cards.forEach((c, i) => c.animate([{ transform: 'none', opacity: 1 },
+    { transform: `translateY(${120 + i * 20}px) rotate(${(i % 2 ? 1 : -1) * (4 + i * 2)}deg)`, opacity: 0 }],
+    { duration: 520, delay: i * 55, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }));
+  setTimeout(done, 520 + cards.length * 55);
+}
+// removing a section crumples it (speakers slide away instead)
+function crumple(el, done) {
+  if (!el || REDUCE) return done();
+  el.style.overflow = 'hidden';
+  el.animate([{ transform: 'none', opacity: 1, height: el.offsetHeight + 'px' },
+    { transform: 'scale(.92) rotate(-2deg)', opacity: .7, offset: .4 },
+    { transform: 'scale(.3) rotate(8deg)', opacity: 0, height: '0px', marginBottom: '0px', paddingTop: '0px', paddingBottom: '0px' }],
+    { duration: 480, easing: 'cubic-bezier(.6,0,.4,1)' }).onfinish = done;
+}
+
 /* ---------- Boot ---------- */
 // save immediately if the page is closed or hidden before the autosave delay
 const flush = () => { clearTimeout(saveTimer); persist(); };
@@ -969,6 +1347,7 @@ $('newBtn').onclick = () => { seedBurst($('newBtn')); newNote(); };
 $('menuBtn').onclick = () => setSidebar(!$('sidebar').classList.contains('open'));
 // swap the placeholder spans in the static HTML for the hand-drawn icons
 document.querySelectorAll('[data-ic]').forEach(el => { el.outerHTML = ic(el.dataset.ic); });
+enhanceSelects();
 function render() {
   if (recording && recNoteId !== currentId) stopDictation();
   renderFilters(); renderList(); renderEditor(); renderDatalist(); }
