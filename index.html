@@ -548,37 +548,6 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
   @keyframes themeflip { from { transform: rotate(-200deg) scale(.4); } }
   html.theme-fade, html.theme-fade * { transition: background-color .45s, color .45s, border-color .45s, box-shadow .45s !important; }
 
-  /* pocket mode */
-  .pocket-btn { background: var(--solid); }
-  .pocket-btn[hidden] { display:none; }
-  #pocket { position:fixed; inset:0; z-index:200; background:#000; color:#5A6070; overflow:hidden;
-    touch-action:none; user-select:none; -webkit-user-select:none; cursor:none; animation: pk-in .7s ease; }
-  #pocket.leaving { animation: pk-out .4s ease forwards; }
-  @keyframes pk-in { from { opacity:0; } } @keyframes pk-out { to { opacity:0; transform: scale(1.03); } }
-  #pocket .pk-canvas { position:absolute; inset:0; }
-  #pocket .pk-inner { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:24px; text-align:center; transition: transform 14s ease-in-out; }
-  #pocket .pk-time { position:absolute; top: calc(18% - 10px); display:inline-flex; align-items:center; gap:9px;
-    font: 600 .82rem "Inter", system-ui, sans-serif; letter-spacing:.12em; text-transform:uppercase; color:#5A6070; }
-  #pocket .pk-dot { width:7px; height:7px; border-radius:50%; background:#b3261e; box-shadow:0 0 10px #b3261e; animation: pulse 1.6s ease-in-out infinite; }
-  #pocket.stopped .pk-dot { animation:none; opacity:.5; box-shadow:none; }
-  #pocket.stopped .pk-time { color:#b3261e; }
-  #pocket .pk-wave-space { height: 160px; }
-  #pocket .pk-caption { position:absolute; top: calc(50% + 104px); left:50%; transform: translateX(-50%); width: min(88vw, 460px); }
-  #pocket .pk-lines { display:flex; flex-direction:column; gap:8px; }
-  #pocket .pk-line { font: 500 1.02rem/1.5 "Inter", system-ui, sans-serif; color:#8a8f9c; transition: opacity .8s, transform .8s, filter .8s; }
-  #pocket .pk-line[data-age="1"] { opacity:.45; transform: translateY(-2px) scale(.97); }
-  #pocket .pk-line[data-age="2"] { opacity:.18; transform: translateY(-4px) scale(.94); filter: blur(.5px); }
-  #pocket .pk-line span { display:inline-block; animation: pk-word .7s cubic-bezier(.2,.8,.3,1) both; animation-delay: var(--d); }
-  @keyframes pk-word { from { opacity:0; transform: translateY(10px); filter: blur(6px); } }
-  #pocket .pk-interim { margin-top:8px; min-height:1.4em; font-size:.9rem; font-style:italic; color:#3e424d; }
-  #pocket .pk-hint { position:absolute; left:0; right:0; bottom: calc(7% + env(safe-area-inset-bottom)); text-align:center;
-    font-size:.78rem; line-height:1.7; color:#3a3e48; opacity:.25; transition: opacity .8s; }
-  #pocket .pk-hint b { color:#5A6070; font-weight:600; }
-  #pocket.hint-on .pk-hint { opacity:1; }
-  #pocket .pk-hold { position:fixed; left:0; bottom:0; height:3px; width:0; background:#E6E8EE; opacity:.5; }
-  #pocket.holding .pk-hold { width:100%; transition: width .9s linear; }
-
   /* ---------- iPhone screen edges (notch, home bar, landscape) ---------- */
   header { padding-top: calc(12px + env(safe-area-inset-top)); padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
   main { padding-bottom: calc(26px + env(safe-area-inset-bottom)); padding-left: max(26px, env(safe-area-inset-left)); padding-right: max(26px, env(safe-area-inset-right)); }
@@ -610,44 +579,6 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
     dialog { margin:auto; }
   }
 
-  /* ---------- live island (Dynamic-Island-style dictation status) ---------- */
-  #island { position:fixed; z-index:85; left:50%; top: calc(var(--header-h, 60px) + 10px); transform: translateX(-50%);
-    width:176px; height:40px; border-radius:20px; background:#14161C; color:#FAF9F6; overflow:hidden; cursor:pointer;
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06) inset;
-    transition: width .5s cubic-bezier(.3,1.35,.5,1), height .5s cubic-bezier(.3,1.35,.5,1), border-radius .5s, opacity .3s;
-    animation: is-in .55s cubic-bezier(.3,1.5,.5,1); -webkit-tap-highlight-color: transparent; user-select:none; }
-  @keyframes is-in { from { width:40px; opacity:0; } }
-  #island.leaving { width:40px; opacity:0; }
-  #island.flash { width: min(92vw, 310px); }
-  #island.open { width: min(92vw, 360px); height:150px; border-radius:28px; cursor:default; }
-  #island .is-row, #island .is-flash { position:absolute; left:0; right:0; top:0; height:40px; display:flex; align-items:center;
-    justify-content:center; gap:10px; padding:0 16px; font: 600 .86rem "Inter", system-ui, sans-serif; transition: opacity .25s; }
-  #island .is-flash { opacity:0; justify-content:center; white-space:nowrap; }
-  #island .is-flash svg.ic { width:1.1em; height:1.1em; flex:none; }
-  #island.flash .is-row { opacity:0; } #island.flash .is-flash { opacity:1; }
-  #island .is-time { font-variant-numeric: tabular-nums; letter-spacing:.02em; }
-  #island .is-dot { width:8px; height:8px; border-radius:50%; background:#e5484d; animation: pulse 1.4s infinite; }
-  @keyframes pulse { 50% { opacity:.3; } }
-  #island .is-eq { display:inline-flex; align-items:center; gap:3px; height:16px; }
-  #island .is-eq i { width:3px; height:100%; border-radius:3px; background:#E6E8EE; animation: wave 1s ease-in-out infinite; }
-  #island .is-eq i:nth-child(2) { animation-delay:-.25s; } #island .is-eq i:nth-child(3) { animation-delay:-.5s; }
-  #island .is-eq i:nth-child(4) { animation-delay:-.15s; } #island .is-eq i:nth-child(5) { animation-delay:-.4s; }
-  #island .is-more { position:absolute; left:0; right:0; top:40px; padding:0 18px 14px; opacity:0; transition: opacity .25s .1s; pointer-events:none; }
-  #island.open .is-more { opacity:1; pointer-events:auto; }
-  #island .is-words { font-size:.85rem; line-height:1.45; color:#c9ccd6; text-align:center; height:2.9em; overflow:hidden;
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-  #island .is-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
-  #island .is-actions button { background:#2a2d36; color:#FAF9F6; border:none; padding:9px; font-size:.85rem; }
-  #island .is-actions button.stop { background:#b3261e; }
-
-  /* date field: Safari (iPhone) draws it with its own style that ignores width and centers the text.
-     Make it a normal field: full width, same height as the others, text on the left like every other box. */
-  input[type="date"] { -webkit-appearance:none; appearance:none; display:block; width:100%; max-width:100%; min-width:0;
-    height:40px; min-height:40px; line-height:normal; text-align:left; }
-  input[type="date"]::-webkit-date-and-time-value { text-align:left; margin:0; min-height:1.2em; }
-  input[type="date"]::-webkit-datetime-edit { padding:0; }
-  .grid3 > div { min-width:0; }
-
   /* note actions: ⋯ menu at the top of a note (nothing at the bottom for floating badges to cover) */
   .card.c-main { padding-top: 20px; }
   .note-actions { position:absolute; top:14px; right:14px; display:flex; align-items:center; gap:8px; z-index:1; }
@@ -673,6 +604,104 @@ try { const t = JSON.parse(localStorage.getItem('sermon-notes-v1'))?.settings?.t
     .note-actions { top:12px; right:12px; }
     .note-actions .saved .txt { display:none; }
     .c-main .title-input { padding-right: 70px; font-size:1.3rem; }
+  }
+
+  /* ---------- scripture box (title card) ---------- */
+  .scripture-row { margin-top:14px; }
+  .scripture-field { position:relative; }
+  .scripture-field svg.ic { position:absolute; left:12px; top:50%; transform:translateY(-50%); color: var(--muted); pointer-events:none; }
+  .scripture-field input { padding-left:38px; font-weight:500; }
+
+  /* ---------- notes document (Google-Docs-style) ---------- */
+  .card.c-notes { overflow:visible; }
+  .card.c-notes::before { border-radius: var(--radius) var(--radius) 0 0; }
+  .rt-toolbar { position:sticky; top:-1px; z-index:3; display:flex; flex-wrap:wrap; align-items:center; gap:4px;
+    margin: 0 -8px 12px; padding:6px 8px; border-radius:14px; background: color-mix(in srgb, var(--solid) 94%, transparent);
+    border:1px solid var(--line); box-shadow: 0 6px 18px -14px rgba(20,22,28,.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .rt-group { display:flex; align-items:center; gap:2px; padding-right:6px; margin-right:2px; border-right:1px solid var(--line); }
+  .rt-group:last-child { border-right:none; }
+  .rt-toolbar button { width:34px; height:34px; padding:0; border-radius:9px; border:1px solid transparent; background:transparent;
+    font: 600 1rem Georgia, "Lora", serif; color: var(--ink); position:relative; box-shadow:none; }
+  .rt-toolbar button:hover { background: var(--soft); border-color: transparent; transform:none; box-shadow:none; }
+  .rt-toolbar button.on { background: var(--ink); color: var(--paper, #FAF9F6); }
+  :root[data-theme="dark"] .rt-toolbar button.on { color:#14161C; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rt-toolbar button.on { color:#14161C; } }
+  .rt-toolbar button svg.ic { width:18px; height:18px; }
+  .rt-toolbar .rt-bar { position:absolute; left:9px; right:9px; bottom:5px; height:3px; border-radius:2px; }
+  .rt-toolbar button[data-cmd="color"] svg.ic, .rt-toolbar button[data-cmd="highlight"] svg.ic { margin-top:-4px; }
+  .rt-style .dd { width:142px; }
+  .rt-toolbar .rt-style .dd-btn { width:100%; height:34px; padding:0 10px; font: 600 .86rem "Inter", system-ui, sans-serif;
+    border-radius:9px; border:1px solid var(--line); background: var(--field); justify-content:space-between; }
+  .rt-toolbar .rt-style .dd-btn svg.ic { width:15px; height:15px; }
+  /* never let a wide toolbar stretch the page: it scrolls inside its own row instead */
+  .editor { grid-template-columns: minmax(0, 1fr); }
+  .editor > .card { min-width:0; }
+  .rt-toolbar { max-width: calc(100% + 16px); }
+  .rt-editor { min-height: 46vh; padding: 6px 4px 24px; outline:none; line-height:1.65; font-size:1.02rem; color: var(--ink);
+    overflow-wrap:anywhere; caret-color: var(--ink); }
+  .rt-editor.is-empty::before { content: attr(data-placeholder); color: var(--muted); opacity:.7; pointer-events:none; position:absolute; }
+  .rt-editor > :first-child { margin-top:0; }
+  .rt-editor p { margin: 0 0 .55em; }
+  .rt-editor h1, .rt-editor h2, .rt-editor h3 { font-family: "Lora", Georgia, serif; line-height:1.25; margin: 1em 0 .4em; }
+  .rt-editor h1 { font-size:1.65rem; } .rt-editor h2 { font-size:1.32rem; } .rt-editor h3 { font-size:1.1rem; color: var(--muted); }
+  .rt-editor blockquote { margin: .6em 0; padding: .35em 0 .35em 14px; border-left:3px solid var(--muted); color: var(--muted); font-style:italic; }
+  .rt-editor ul, .rt-editor ol { margin: .2em 0 .6em; padding-left: 1.6em; }
+  .rt-editor li { margin: .15em 0; }
+  .rt-editor hr { border:none; border-top:1px solid var(--line); margin: 1.1em 0; }
+  .rt-editor a { color: #2f6fb3; text-decoration: underline; text-underline-offset: 2px; }
+  .rt-editor span[style*="background-color"]:not([style*="transparent"]) { color:#14161C; border-radius:3px; padding:0 1px; }
+  .rt-editor ul.checklist { list-style:none; padding-left: 4px; }
+  .rt-editor ul.checklist > li { position:relative; padding-left: 28px; }
+  .rt-editor ul.checklist > li::before { content:""; position:absolute; left:0; top:.28em; width:17px; height:17px; border-radius:5px;
+    border:1.5px solid var(--muted); background: var(--field); cursor:pointer; transition: background .2s, border-color .2s; }
+  .rt-editor ul.checklist > li[data-checked="true"] { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 70%, transparent); }
+  .rt-editor ul.checklist > li[data-checked="true"]::before { background: var(--ink); border-color: var(--ink); }
+  .rt-editor ul.checklist > li[data-checked="true"]::after { content:""; position:absolute; left:5.5px; top:calc(.28em + 3.5px); width:5px; height:9px;
+    border: solid var(--paper, #FAF9F6); border-width: 0 2px 2px 0; transform: rotate(45deg); pointer-events:none; }
+  :root[data-theme="dark"] .rt-editor ul.checklist > li[data-checked="true"]::after { border-color:#14161C; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rt-editor ul.checklist > li[data-checked="true"]::after { border-color:#14161C; } }
+  .tick-pop::before { animation: chk-pop .45s cubic-bezier(.3,1.8,.5,1); }
+  .rt-foot { display:flex; justify-content:space-between; gap:12px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:.78rem; color: var(--muted); font-weight:600; }
+  /* menus: color swatches; text styles that "set" like type */
+  .dd-list .sw { width:16px; height:16px; border-radius:50%; flex:none; border:1px solid rgba(0,0,0,.15); }
+  .dd-list.v-swatch { --vc: var(--ink); animation: dd-fade .2s; }
+  .v-swatch li { animation: sw-pop .5s cubic-bezier(.3,1.7,.5,1); }
+  .v-swatch.closing { animation: dd-fade-out .25s forwards; }
+  @keyframes sw-pop { from { opacity:0; transform: scale(.6) translateX(-8px); } }
+  .dd-list.v-type { --vc: var(--ink); animation: dd-fade .2s; }
+  .v-type li { animation: type-set .55s cubic-bezier(.2,.8,.3,1); }
+  .v-type.closing { animation: dd-fade-out .25s forwards; }
+  @keyframes type-set { from { opacity:0; letter-spacing:.4em; filter: blur(3px); } }
+  /* each formatting button's tap */
+  .tap-bold { animation: t-bold .45s; } @keyframes t-bold { 40% { transform: scale(1.25); font-weight:900; } }
+  .tap-italic { animation: t-ital .5s; } @keyframes t-ital { 40% { transform: skewX(-18deg); } }
+  .tap-underline { animation: t-under .45s; } @keyframes t-under { 40% { transform: translateY(3px); } }
+  .tap-strike { animation: t-strike .45s; } @keyframes t-strike { 40% { transform: scaleX(1.25); } }
+  .tap-undo svg { animation: t-undo .5s; } @keyframes t-undo { 40% { transform: rotate(-35deg); } }
+  .tap-redo svg { animation: t-redo .5s; } @keyframes t-redo { 40% { transform: rotate(35deg); } }
+  .tap-swatch .rt-bar, .tap-marker .rt-bar { animation: t-bar .5s; } @keyframes t-bar { 40% { transform: scaleX(1.6); } }
+  .tap-marker svg { animation: t-mark .5s; } @keyframes t-mark { 40% { transform: translate(-2px, 2px) rotate(-12deg); } }
+  .tap-list svg { animation: t-list .5s; } @keyframes t-list { 40% { transform: translateX(3px); } }
+  .tap-tick svg { animation: t-tick .5s cubic-bezier(.3,1.8,.5,1); } @keyframes t-tick { 40% { transform: scale(1.25) rotate(-8deg); } }
+  .tap-al svg { animation: t-al .45s; } @keyframes t-al { 40% { transform: translateX(-3px); } }
+  .tap-ac svg { animation: t-ac .45s; } @keyframes t-ac { 40% { transform: scaleX(.8); } }
+  .tap-ar svg { animation: t-ar .45s; } @keyframes t-ar { 40% { transform: translateX(3px); } }
+  .tap-in svg { animation: t-in .45s; } @keyframes t-in { 40% { transform: translateX(4px); } }
+  .tap-out svg { animation: t-out .45s; } @keyframes t-out { 40% { transform: translateX(-4px); } }
+  .tap-linkspin svg { animation: t-link .6s; } @keyframes t-link { to { transform: rotate(180deg); } }
+  .tap-hr svg { animation: t-hr .45s; } @keyframes t-hr { 40% { transform: scaleX(1.35); } }
+  .tap-erase svg { animation: t-erase .5s; } @keyframes t-erase { 25% { transform: translateX(-3px) rotate(-8deg); } 60% { transform: translateX(3px) rotate(8deg); } }
+  @media (max-width: 760px) {
+    .rt-toolbar { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling: touch; scrollbar-width:none; margin: 0 -6px 12px; }
+    .rt-toolbar::-webkit-scrollbar { display:none; }
+    .rt-group { flex:none; }
+    .rt-editor { min-height: 50vh; font-size:1rem; }
+    .rt-hint { display:none; }
+  }
+  @media print {
+    .rt-editor { min-height:0; }
+    .rt-editor.is-empty::before { content:none; }
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { animation: none !important; transition: none !important; } }
 
@@ -773,18 +802,98 @@ const DEFAULT_SECTIONS = ['Main Points','Key Quotes','Personal Reflection'];
 
 // repair anything missing or malformed (older versions, imports, hand-edited backups)
 const str = v => typeof v === 'string' ? v : v == null ? '' : String(v);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const strList = a => Array.isArray(a) ? [...new Set(a.map(str).map(x => x.trim()).filter(Boolean))] : [];
 function normNote(n) {
-  return {
+  const out = {
     id: str(n.id) || uid(), title: str(n.title), date: str(n.date), period: n.period === 'PM' ? 'PM' : 'AM',
     eventType: str(n.eventType), location: str(n.location),
     speakers: Array.isArray(n.speakers) && n.speakers.length ? n.speakers.map(x => ({ name: str(x?.name), role: str(x?.role) })) : [{ name: '', role: '' }],
-    scriptures: str(n.scriptures),
-    sections: Array.isArray(n.sections) ? n.sections.map(x => ({ id: str(x?.id) || uid(), title: str(x?.title), body: str(x?.body) }))
-      : DEFAULT_SECTIONS.map(t => ({ id: uid(), title: t, body: '' })),
-    actions: str(n.actions), prayer: str(n.prayer), transcript: str(n.transcript), summary: str(n.summary),
-    summaryEdited: !!n.summaryEdited, updated: +n.updated || Date.now()
+    scripture: str(n.scripture), notesHtml: '', updated: +n.updated || Date.now()
   };
+  if (typeof n.notesHtml === 'string') out.notesHtml = cleanHtml(n.notesHtml);
+  else {
+    // notes from the earlier versions: move every section, prayer point, transcript… into the notes document
+    const refs = str(n.scriptures).split(/\n|;\s*/).map(x => x.trim()).filter(Boolean);
+    if (!out.scripture && refs.length) out.scripture = refs.map(r => r.split(' — ')[0]).join('; ');
+    const parts = [];
+    const add = (title, body) => { if (str(body).trim()) parts.push(`<h2>${esc(title)}</h2>` + textToHtml(body)); };
+    if (refs.some(r => r.includes(' — '))) add('Scripture', refs.join('\n'));
+    (Array.isArray(n.sections) ? n.sections : []).forEach(x => add(str(x?.title) || 'Notes', x?.body));
+    add('Action Steps', n.actions); add('Prayer Points', n.prayer); add('Summary', n.summary); add('Transcript', n.transcript);
+    out.notesHtml = parts.join('');
+  }
+  return out;
+}
+// plain text (one item per line, "• " bullets) → simple HTML
+function textToHtml(t) {
+  const lines = str(t).split('\n'); let html = '', list = false;
+  for (const raw of lines) {
+    const l = raw.trim(), m = l.match(/^[•\-*]\s+(.*)$/);
+    if (m) { if (!list) { html += '<ul>'; list = true; } html += `<li>${esc(m[1])}</li>`; continue; }
+    if (list) { html += '</ul>'; list = false; }
+    if (l) html += `<p>${esc(l)}</p>`;
+  }
+  return html + (list ? '</ul>' : '');
+}
+// keep only safe formatting (used for saved notes, imports and anything pasted in)
+const OK_TAGS = new Set(['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'H1', 'H2', 'H3', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'A', 'HR', 'SPAN', 'MARK', 'DIV', 'SUB', 'SUP']);
+const OK_STYLE = /^(color|background-color|text-align|margin-left|padding-left|font-weight|font-style|text-decoration|text-decoration-line)$/;
+function cleanHtml(html) {
+  const tpl = document.createElement('template'); tpl.innerHTML = str(html);
+  const walk = node => {
+    [...node.childNodes].forEach(el => {
+      if (el.nodeType === 3) return;
+      if (el.nodeType !== 1) { el.remove(); return; }
+      if (el.tagName === 'FONT') {            // old-style colors → span
+        const sp = document.createElement('span'); if (el.getAttribute('color')) sp.style.color = el.getAttribute('color');
+        sp.append(...el.childNodes); el.replaceWith(sp); walk(sp.parentNode || node); return;
+      }
+      if (!OK_TAGS.has(el.tagName)) {
+        if (['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'TEMPLATE', 'META', 'LINK', 'SVG', 'MATH'].includes(el.tagName)) { el.remove(); return; }
+        const frag = document.createDocumentFragment(); frag.append(...el.childNodes); el.replaceWith(frag); walk(node); return;
+      }
+      const style = el.getAttribute('style') || '', keepStyle = style.split(';').map(x => x.trim()).filter(d => {
+        const [k, ...v] = d.split(':'); const val = v.join(':').trim().toLowerCase();
+        return OK_STYLE.test(k.trim().toLowerCase()) && !/url\(|expression|javascript/.test(val);
+      }).join('; ');
+      const href = el.tagName === 'A' ? el.getAttribute('href') : null;
+      const checked = el.tagName === 'LI' ? el.getAttribute('data-checked') : null;
+      const isChecklist = el.tagName === 'UL' && el.classList.contains('checklist');
+      [...el.attributes].forEach(a => el.removeAttribute(a.name));
+      if (keepStyle) el.setAttribute('style', keepStyle);
+      if (href && /^(https?:|mailto:)/i.test(href.trim())) { el.setAttribute('href', href.trim()); el.setAttribute('target', '_blank'); el.setAttribute('rel', 'noopener'); }
+      if (checked === 'true' || checked === 'false') el.setAttribute('data-checked', checked);
+      if (isChecklist) el.className = 'checklist';
+      walk(el);
+    });
+  };
+  walk(tpl.content);
+  return tpl.innerHTML;
+}
+// the notes document as plain text (search, Copy as text)
+function htmlToText(html) {
+  const tpl = document.createElement('template'); tpl.innerHTML = str(html); const out = [];
+  const visit = (el, depth = 0) => {
+    for (const c of el.children) {
+      const t = c.tagName;
+      if (t === 'UL' || t === 'OL') {
+        [...c.children].forEach((li, i) => {
+          const mark = c.classList.contains('checklist') ? (li.getAttribute('data-checked') === 'true' ? '[x] ' : '[ ] ') : t === 'OL' ? `${i + 1}. ` : '• ';
+          out.push('  '.repeat(depth) + mark + [...li.childNodes].filter(x => !/^(UL|OL)$/.test(x.tagName || '')).map(x => x.textContent).join('').trim());
+          visit(li, depth + 1);
+        });
+      } else if (t === 'HR') out.push('———');
+      else if (/^(H1|H2|H3)$/.test(t)) out.push('', c.textContent.trim().toUpperCase());
+      else if (t === 'BLOCKQUOTE') out.push('> ' + c.textContent.trim());
+      else if (c.children.length && [...c.children].some(x => /^(UL|OL|P|DIV|H1|H2|H3|BLOCKQUOTE)$/.test(x.tagName))) visit(c, depth);
+      else if (c.textContent.trim()) out.push(c.textContent.trim());
+    }
+  };
+  visit(tpl.content);
+  const loose = [...tpl.content.childNodes].filter(x => x.nodeType === 3 && x.textContent.trim()).map(x => x.textContent.trim());
+  return [...loose, ...out].join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 function normState(s) {
   const notes = (Array.isArray(s?.notes) ? s.notes : []).filter(n => n && typeof n === 'object').map(normNote);
@@ -793,8 +902,7 @@ function normState(s) {
   // clean up partial names saved by older versions ("P", "Pa", "Pas"… while typing)
   speakers = speakers.filter(x => used.has(x) || !speakers.some(o => o !== x && o.startsWith(x)));
   return { notes, speakers, eventTypes: Array.isArray(s?.eventTypes) ? strList(s.eventTypes) : [...DEFAULT_EVENTS],
-    settings: { autoSummary: s?.settings?.autoSummary !== false, autoFill: s?.settings?.autoFill !== false,
-      theme: ['light', 'dark'].includes(s?.settings?.theme) ? s.settings.theme : 'auto' } };
+    settings: { theme: ['light', 'dark'].includes(s?.settings?.theme) ? s.settings.theme : 'auto' } };
 }
 let storageProblem = false, loadProblem = false;
 function load() {
@@ -824,8 +932,7 @@ function toast(msg, ms = 5000) {
   const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 400); }, ms);
 }
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 const $ = id => document.getElementById(id);
 
 let state = load();          // (needs uid/str/normState above it)
@@ -865,6 +972,21 @@ const ICONS = {
   archive: '<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v11h14V9"/><path d="M10 13h4"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   chev: '<path d="M6 9.5l6 6 6-6"/>',
+  undo: '<path d="M9 5L4 10l5 5"/><path d="M4.5 10H14a5.5 5.5 0 0 1 0 11h-3"/>',
+  redo: '<path d="M15 5l5 5-5 5"/><path d="M19.5 10H10a5.5 5.5 0 0 0 0 11h3"/>',
+  textColor: '<path d="M6.5 15.5L12 3.5l5.5 12"/><path d="M8.3 11.5h7.4"/>',
+  marker: '<path d="M14.5 3.5l5 5-8 8H6.5v-5z"/><path d="M12 6l5 5"/>',
+  listBullet: '<circle class="fill" cx="5" cy="7" r="1.4"/><circle class="fill" cx="5" cy="12" r="1.4"/><circle class="fill" cx="5" cy="17" r="1.4"/><path d="M9.5 7H20M9.5 12H20M9.5 17H20"/>',
+  listNum: '<path d="M4 5.2h1.6V10"/><path d="M3.8 14.3c.5-.8 2.7-.9 2.6.6-.1 1.1-2.7 2.2-2.7 3.4h2.9"/><path d="M10 7H20M10 12H20M10 17H20"/>',
+  checklist: '<rect x="3.5" y="4.5" width="5.5" height="5.5" rx="1.3"/><path d="M4.4 16.4l1.4 1.4 2.6-2.8"/><path d="M12 7.2H20.5M12 16.8H20.5"/>',
+  alignL: '<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>',
+  alignC: '<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>',
+  alignR: '<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',
+  indent: '<path d="M4 5h16M11 10h9M11 14h9M4 19h16"/><path d="M4 9.5l3 2.5-3 2.5"/>',
+  outdent: '<path d="M4 5h16M11 10h9M11 14h9M4 19h16"/><path d="M7 9.5L4 12l3 2.5"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  hr: '<path d="M3.5 12h17"/><path d="M8 7h8M8 17h8" opacity=".35"/>',
+  clearFmt: '<path d="M5 5h11M10.5 5L8 15"/><path d="M14.5 14.5l5 5M19.5 14.5l-5 5"/>',
   dots: '<circle class="fill" cx="5.5" cy="12" r="1.7"/><circle class="fill" cx="12" cy="12" r="1.7"/><circle class="fill" cx="18.5" cy="12" r="1.7"/>',
   contrast: '<circle cx="12" cy="12" r="8.5"/><path class="fill" d="M12 3.5a8.5 8.5 0 0 1 0 17z"/>'
 };
@@ -942,8 +1064,7 @@ function newNote() {
     id: uid(), title: '', date: today(), period: new Date().getHours() < 12 ? 'AM' : 'PM',
     eventType: state.eventTypes[0] || '', location: '',
     speakers: [{ name: '', role: 'Pastor' }],
-    scriptures: '', sections: DEFAULT_SECTIONS.map(t => ({ id: uid(), title: t, body: '' })),
-    actions: '', prayer: '', transcript: '', summary: '', updated: Date.now()
+    scripture: '', notesHtml: '', updated: Date.now()
   };
   state.notes.unshift(note); currentId = note.id; justAdded = note.id; persist(); render(); justAdded = null;
   if (state.notes.length === 1) navigator.storage?.persist?.().catch(() => {});
@@ -980,8 +1101,8 @@ function renderList() {
     if (pd && n.period !== pd) return false;
     if (sp && !n.speakers.some(s => s.name.trim() === sp)) return false;
     if (q) {
-      const hay = [n.title, n.eventType, n.location, n.scriptures, n.actions, n.prayer, n.transcript, n.summary,
-        ...n.speakers.map(s => s.name + ' ' + s.role), ...n.sections.map(s => s.title + ' ' + s.body)].join(' ').toLowerCase();
+      const hay = [n.title, n.eventType, n.scripture, htmlToText(n.notesHtml),
+        ...n.speakers.map(s => s.name + ' ' + s.role)].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -1017,7 +1138,7 @@ function renderEditor() {
   lastShownId = n && n.id;
   if (!n) {
     $('editor').innerHTML = `<div class="card c-main welcome"><div class="big">📖🌿</div><h2>Welcome!</h2>
-      <p>Capture every message: speakers, event types, dates, AM/PM services, live dictation and automatic summaries.</p>
+      <p>Capture every message: the scripture, speakers, event type, date and service, plus your own notes with headings, lists, checklists and highlights.</p>
       <button class="primary" onclick="startFirst(this)">+ Start your first note</button></div>`;
     return;
   }
@@ -1042,31 +1163,8 @@ function renderEditor() {
             <option value="__new">+ Add new event type…</option>
           </select></div>
       </div>
-      <div style="margin-top:12px"><label>Location / Church</label>
-        <input data-f="location" placeholder="e.g. Grace Fellowship, Main Sanctuary" value="${esc(n.location)}"></div>
-    </div>
-
-    <div class="card c-dict">
-      <h2><span class="badge">${ic('mic')}</span>Dictation &amp; Summary</h2>
-      ${SR ? `
-      <div class="toolbar no-print" style="align-items:center">
-        <button id="recBtn" class="rec-btn ${recording ? 'recording' : ''}"></button>
-        <button id="pocketBtn" class="pocket-btn" ${recording ? '' : 'hidden'} title="Black screen that keeps dictating">${ic('moon')}Pocket mode</button>
-        <span id="recStatus" class="saved"></span>
-        <span style="flex:1"></span>
-        <span class="checks">
-          <label class="check"><input type="checkbox" id="autoFill" ${state.settings.autoFill ? 'checked' : ''}> Auto-fill sections as I dictate</label>
-          <label class="check"><input type="checkbox" id="autoSum" ${state.settings.autoSummary ? 'checked' : ''}> Auto-summarize when I stop</label>
-        </span>
-      </div>
-      <div id="interim" class="interim no-print"></div>` : `
-      <p class="hint no-print">Live dictation isn't supported in this browser. Try Chrome, Edge or Safari.
-        You can still type or paste a transcript below and summarize it.</p>`}
-      <label>Transcript</label>
-      <textarea data-f="transcript" placeholder="Your dictated words appear here as the speaker talks…">${esc(n.transcript)}</textarea>
-      <div class="sum-head"><label>Summary</label><button class="no-print" id="sumBtn">${ic('sparkle')}Summarize</button></div>
-      <div class="shine-wrap" id="sumWrap"><textarea data-f="summary" placeholder="A summary of the transcript is created automatically when you stop dictating.">${esc(n.summary)}</textarea></div>
-      <div class="toolbar no-print" id="sumExtras" style="margin-top:8px"></div>
+      <div class="scripture-row"><label for="scriptureInput">Scripture</label>
+        <div class="scripture-field">${ic('book')}<input id="scriptureInput" data-f="scripture" placeholder="e.g. John 3:16–21; Romans 8:28" value="${esc(n.scripture)}" autocomplete="off"></div></div>
     </div>
 
     <div class="card c-speak">
@@ -1081,59 +1179,38 @@ function renderEditor() {
       </div>
     </div>
 
-    <div class="card c-scrip">
-      <h2><span class="badge">${ic('book')}</span>Scripture References</h2>
-      <textarea data-f="scriptures" style="min-height:60px" placeholder="e.g. John 3:16; Romans 8:28–30">${esc(n.scriptures)}</textarea>
-    </div>
-
     <div class="card c-notes">
-      <h2><span class="badge">${ic('quill')}</span>Notes <span class="spacer"></span><button class="no-print" id="addSection">${ic('plus')}Add section</button></h2>
-      <div id="sections">
-        ${n.sections.map((s, i) => `
-          <div class="section" data-i="${i}">
-            <div class="section-head">
-              <input data-sec="title" value="${esc(s.title)}" placeholder="Section title">
-              <button class="icon no-print" data-move="${i}:-1" title="Move up">${ic('up')}</button>
-              <button class="icon no-print" data-move="${i}:1" title="Move down">${ic('down')}</button>
-              <button class="icon danger no-print" data-del-section="${i}" title="Delete section">${ic('x')}</button>
-            </div>
-            <textarea data-sec="body" placeholder="Write here…">${esc(s.body)}</textarea>
-          </div>`).join('')}
+      <h2><span class="badge">${ic('quill')}</span>Notes</h2>
+      <div class="rt-toolbar no-print" role="toolbar" aria-label="Formatting">
+        <div class="rt-group"><button type="button" data-cmd="undo" title="Undo (Ctrl+Z)" aria-label="Undo (Ctrl+Z)">${ic('undo')}</button><button type="button" data-cmd="redo" title="Redo (Ctrl+Y)" aria-label="Redo (Ctrl+Y)">${ic('redo')}</button></div>
+        <div class="rt-group rt-style"><select id="blockStyle" aria-label="Text style">
+          <option value="p">Normal text</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option><option value="blockquote">Quote</option></select></div>
+        <div class="rt-group"><button type="button" data-cmd="bold" title="Bold (Ctrl+B)" aria-label="Bold (Ctrl+B)"><b>B</b></button><button type="button" data-cmd="italic" title="Italic (Ctrl+I)" aria-label="Italic (Ctrl+I)"><i>I</i></button><button type="button" data-cmd="underline" title="Underline (Ctrl+U)" aria-label="Underline (Ctrl+U)"><u>U</u></button><button type="button" data-cmd="strikeThrough" title="Strikethrough (Alt+Shift+5)" aria-label="Strikethrough (Alt+Shift+5)"><s>S</s></button></div>
+        <div class="rt-group"><button type="button" data-cmd="color" title="Text color" aria-label="Text color">${ic('textColor')}<i class="rt-bar" id="colorBar"></i></button><button type="button" data-cmd="highlight" title="Highlight" aria-label="Highlight">${ic('marker')}<i class="rt-bar hl" id="hlBar"></i></button></div>
+        <div class="rt-group"><button type="button" data-cmd="insertUnorderedList" title="Bulleted list (Ctrl+Shift+8)" aria-label="Bulleted list (Ctrl+Shift+8)">${ic('listBullet')}</button><button type="button" data-cmd="insertOrderedList" title="Numbered list (Ctrl+Shift+7)" aria-label="Numbered list (Ctrl+Shift+7)">${ic('listNum')}</button><button type="button" data-cmd="checklist" title="Checklist (Ctrl+Shift+9)" aria-label="Checklist (Ctrl+Shift+9)">${ic('checklist')}</button></div>
+        <div class="rt-group"><button type="button" data-cmd="justifyLeft" title="Align left" aria-label="Align left">${ic('alignL')}</button><button type="button" data-cmd="justifyCenter" title="Center" aria-label="Center">${ic('alignC')}</button><button type="button" data-cmd="justifyRight" title="Align right" aria-label="Align right">${ic('alignR')}</button><button type="button" data-cmd="outdent" title="Decrease indent" aria-label="Decrease indent">${ic('outdent')}</button><button type="button" data-cmd="indent" title="Increase indent" aria-label="Increase indent">${ic('indent')}</button></div>
+        <div class="rt-group"><button type="button" data-cmd="link" title="Insert link (Ctrl+K)" aria-label="Insert link (Ctrl+K)">${ic('link')}</button><button type="button" data-cmd="insertHorizontalRule" title="Divider line" aria-label="Divider line">${ic('hr')}</button><button type="button" data-cmd="removeFormat" title="Clear formatting (Ctrl+\\)" aria-label="Clear formatting (Ctrl+\\)">${ic('clearFmt')}</button></div>
       </div>
-    </div>
-
-    <div class="card c-act">
-      <h2><span class="badge">${ic('flag')}</span>Action Steps / Application</h2>
-      <textarea data-f="actions" placeholder="What will I do this week?">${esc(n.actions)}</textarea>
-    </div>
-    <div class="card c-pray">
-      <h2><span class="badge">${ic('candle')}</span>Prayer Points</h2>
-      <textarea data-f="prayer" placeholder="Prayer requests & points">${esc(n.prayer)}</textarea>
-    </div>
-`;
-  autosize(); renderSumExtras(); updateRecUI(); enhanceSelects();
-}
-
-function autosize() {
-  document.querySelectorAll('#editor textarea').forEach(t => { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; });
+      <div class="rt-editor" id="notesEditor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true"
+        aria-label="Notes" data-placeholder="Start typing your notes… Tip: “- ” starts a list, “[] ” a checklist, “# ” a heading">${n.notesHtml}</div>
+      <div class="rt-foot no-print"><span id="wordCount"></span><span class="rt-hint">Ctrl/⌘+click a link to open it</span></div>
+    </div>`;
+  enhanceSelects(); initNotesEditor(n);
 }
 
 const ed = $('editor');
 ed.addEventListener('input', e => {
   const n = current(); if (!n) return;
   const t = e.target;
+  if (t.id === 'notesEditor' || t.id === 'blockStyle') return;      // the notes document saves itself
   if (t.dataset.f && t.dataset.f !== 'eventType') n[t.dataset.f] = t.value;
-  if (t.dataset.f === 'summary') n.summaryEdited = true;
-  if (t.dataset.f === 'transcript' || t.dataset.f === 'scriptures') renderSumExtras();
   if (t.dataset.s) n.speakers[+t.closest('.speaker-row').dataset.i][t.dataset.s] = t.value;
-  if (t.dataset.sec) n.sections[+t.closest('.section').dataset.i][t.dataset.sec] = t.value;
-  if (t.tagName === 'TEXTAREA') { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; }
   touch();
 });
 ed.addEventListener('change', e => {
   const n = current(); const t = e.target;
-  if (t.id === 'autoSum') { state.settings.autoSummary = t.checked; persist(); return; }
-  if (t.id === 'autoFill') { state.settings.autoFill = t.checked; persist(); return; }
+  if (t.id === 'blockStyle') { rtBlock(t.value); return; }
   if (t.dataset.s === 'name') { rememberSpeaker(t.value); touch(); return; }   // saved once you finish typing
   if (t.dataset.f === 'eventType') {
     if (t.value === '__new') {
@@ -1147,21 +1224,8 @@ ed.addEventListener('change', e => {
 ed.addEventListener('click', e => {
   const n = current(); if (!n) return;
   const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'recBtn') { recording ? stopDictation() : startDictation(); }
-  else if (b.id === 'pocketBtn') openPocket();
-  else if (b.id === 'sumBtn') {
-    if (!(n.transcript || '').trim()) { recMsg = 'Nothing to summarize yet. Dictate, type or paste a transcript first.'; updateRecUI(); }
-    else {
-      if (!n.summaryEdited || !(n.summary || '').trim() || confirm('Replace your edited summary with a new one?')) makeSummary(n);
-      if (state.settings.autoFill) { recNoteId = n.id; liveCtx = newCtx(); finishAutoFill(); }
-    }
-  }
-  else if (b.id === 'addRefs') {
-    const missing = missingRefs(n);
-    n.scriptures = ((n.scriptures || '').trim() ? n.scriptures.trim() + '; ' : '') + missing.join('; ');
-    touch(); renderEditor();
-  }
-  else if (b.dataset.p) {
+  if (b.dataset.cmd) { rtCommand(b.dataset.cmd, b); return; }
+  if (b.dataset.p) {
     n.period = b.dataset.p; touch();
     const seg = $('periodSeg'); seg.classList.toggle('pm', n.period === 'PM');
     seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.p === n.period));
@@ -1172,20 +1236,256 @@ ed.addEventListener('click', e => {
     const i = +b.dataset.delSpeaker;
     animateOut(b.closest('.speaker-row'), () => { n.speakers.splice(i, 1); touch(); renderEditor(); });
   }
-  else if (b.id === 'addSection') { n.sections.push({ id:uid(), title:'New Section', body:'' }); touch(); renderEditor();
-    flash('.section:last-child'); const inputs = document.querySelectorAll('[data-sec="title"]'); inputs[inputs.length-1]?.select(); }
-  else if (b.dataset.delSection) {
-    const i = +b.dataset.delSection, s = n.sections[i];
-    if (!s.body.trim() || confirm(`Delete section “${s.title}”?`))
-      crumple(b.closest('.section'), () => { n.sections.splice(i, 1); touch(); renderEditor(); });
-  }
-  else if (b.dataset.move) {
-    const [i, d] = b.dataset.move.split(':').map(Number); const j = i + d;
-    if (j >= 0 && j < n.sections.length) { [n.sections[i], n.sections[j]] = [n.sections[j], n.sections[i]]; touch(); renderEditor();
-      flash(`.section[data-i="${j}"]`); }
-  }
   else if (b.id === 'noteMenuBtn') { PANEL && PANEL.anchor === b ? closePanel() : openNoteMenu(b); }
 });
+
+/* ---------- Notes document: a small Google-Docs-style editor ---------- */
+let rtRange = null, rtNote = null, rtColor = 'currentcolor', rtHl = '#fde68a';
+const RT_COLORS = [['Default', 'currentcolor'], ['Gray', '#5A6070'], ['Red', '#c0392b'], ['Orange', '#d9822b'],
+  ['Green', '#2e8b57'], ['Blue', '#2f6fb3'], ['Purple', '#7d4fb0']];
+const RT_HIGHLIGHTS = [['Yellow', '#fde68a'], ['Green', '#bbf7d0'], ['Blue', '#bfdbfe'], ['Pink', '#fbcfe8'], ['None', 'transparent']];
+const rtEl = () => $('notesEditor');
+function initNotesEditor(n) {
+  const el = rtEl(); if (!el) return;
+  rtNote = n;
+  try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch {}
+  rtNormalize(); rtEnsureBlocks();
+  el.addEventListener('focus', rtEnsureBlocks);
+  $('colorBar').style.background = rtColor === 'currentcolor' ? 'var(--ink)' : rtColor;
+  $('hlBar').style.background = rtHl;
+  el.addEventListener('input', e => { rtEnsureBlocks(); rtAutoFormat(e); rtTidy(); rtSave(); });
+  el.addEventListener('keydown', rtKeys);
+  el.addEventListener('paste', rtPaste);
+  // ticking a box shouldn't move your typing cursor (or pop up the phone keyboard)
+  el.addEventListener('mousedown', e => { if (e.target.closest('ul.checklist > li') && e.offsetX < 26) e.preventDefault(); });
+  el.addEventListener('click', e => {
+    const li = e.target.closest('ul.checklist > li');
+    if (li && e.offsetX < 26) { li.dataset.checked = li.dataset.checked === 'true' ? 'false' : 'true'; play(li, 'tick-pop', 500); rtSave(); }
+    const a = e.target.closest('a[href]');
+    if (a && (e.metaKey || e.ctrlKey)) { e.preventDefault(); window.open(a.href, '_blank', 'noopener'); }
+  });
+  rtTidy(); rtWords();
+}
+// remember where the cursor was, so toolbar buttons and menus act on the right text
+document.addEventListener('selectionchange', () => {
+  const el = rtEl(), sel = getSelection(); if (!el || !sel.rangeCount) return;
+  const r = sel.getRangeAt(0);
+  if (el.contains(r.commonAncestorContainer)) { rtRange = r.cloneRange(); rtState(); }
+});
+function rtFocus() {
+  const el = rtEl(); if (!el) return false;
+  const sel = getSelection();
+  // the cursor is already in the notes: leave it exactly where it is (the remembered spot can lag behind fast typing)
+  if (document.activeElement === el && sel.rangeCount && el.contains(sel.getRangeAt(0).commonAncestorContainer)) return true;
+  el.focus({ preventScroll: true });
+  if (rtRange && el.contains(rtRange.commonAncestorContainer)) { sel.removeAllRanges(); sel.addRange(rtRange); }
+  return true;
+}
+function rtExec(cmd, val = null) { try { return document.execCommand(cmd, false, val); } catch { return false; } }
+function rtCommand(cmd, btn) {
+  if (!rtFocus()) return;
+  if (cmd === 'color') return openPanel(btn, RT_COLORS.map(([l, v]) => ({ label: l, value: v, swatch: v === 'currentcolor' ? 'var(--ink)' : v })), 'swatch',
+    it => { rtColor = it.value; $('colorBar').style.background = it.swatch; rtFocus(); rtExec('styleWithCSS', true); rtExec('foreColor', it.value); rtExec('styleWithCSS', false); rtSave(); });
+  if (cmd === 'highlight') return openPanel(btn, RT_HIGHLIGHTS.map(([l, v]) => ({ label: l, value: v, swatch: v })), 'swatch',
+    it => { if (it.value !== 'transparent') { rtHl = it.value; $('hlBar').style.background = it.value; }
+      rtFocus(); rtExec('styleWithCSS', true); rtExec('hiliteColor', it.value) || rtExec('backColor', it.value); rtExec('styleWithCSS', false); rtSave(); });
+  if (cmd === 'checklist') rtList('check');
+  else if (cmd === 'insertUnorderedList') rtList('ul');
+  else if (cmd === 'insertOrderedList') rtList('ol');
+  else if (cmd === 'link') rtLink();
+  else if (cmd === 'removeFormat') { rtExec('removeFormat'); rtExec('unlink'); rtBlock('p'); }
+  else rtExec(cmd);
+  rtTidy(); rtSave(); rtState();
+}
+function rtBlock(tag) {
+  rtFocus(); rtEnsureBlocks();
+  const lines = rtLines().filter(l => l.tagName !== 'LI'); if (!lines.length) return;
+  // choosing the style you're already in turns it back into normal text
+  const target = lines.every(l => l.tagName.toLowerCase() === tag) && tag !== 'p' ? 'p' : tag;
+  rtKeepCaret(() => {
+    let first = null;
+    lines.forEach(l => {
+      if (l.tagName.toLowerCase() === target) { first ||= l; return; }
+      const nb = document.createElement(target); nb.append(...l.childNodes); if (!nb.childNodes.length) nb.append(document.createElement('br'));
+      l.replaceWith(nb); first ||= nb;
+    });
+    return first;
+  });
+  rtSave(); rtState();
+}
+function rtBlockEl() {
+  const sel = getSelection(), el = rtEl(); if (!sel.rangeCount || !el) return null;
+  let n = sel.getRangeAt(0).startContainer; if (n.nodeType === 3) n = n.parentNode;
+  return n.closest?.('li, p, h1, h2, h3, blockquote, div:not(#notesEditor)') || null;
+}
+// the lines (paragraphs, headings, list items) the cursor or selection touches
+function rtLines() {
+  const el = rtEl(), sel = getSelection(); if (!el || !sel.rangeCount) return [];
+  const r = sel.getRangeAt(0), out = [];
+  for (const c of el.children) {
+    if (!r.intersectsNode(c)) continue;
+    if (c.tagName === 'UL' || c.tagName === 'OL') { for (const li of c.children) if (r.intersectsNode(li)) out.push(li); }
+    else out.push(c);
+  }
+  return out;
+}
+const listKind = l => l.tagName === 'OL' ? 'ol' : l.classList.contains('checklist') ? 'check' : 'ul';
+// run a change that moves elements around, then put the cursor back where it was
+function rtKeepCaret(fn) {
+  const sel = getSelection(), k = sel.rangeCount ? [sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset] : null;
+  const first = fn();
+  const el = rtEl();
+  if (k && k[0] !== first && el.contains(k[0]) && el.contains(k[2]) && k[0] !== el) { try { sel.setBaseAndExtent(...k); return; } catch {} }
+  if (first && el.contains(first)) { const r = document.createRange(); r.selectNodeContents(first); r.collapse(!first.textContent); sel.removeAllRanges(); sel.addRange(r); }
+}
+function rtSplitAround(list, item, repl) {
+  const after = list.cloneNode(false); let n = item.nextSibling;
+  while (n) { const nx = n.nextSibling; after.append(n); n = nx; }
+  list.after(repl); if (after.children.length) repl.after(after);
+  item.remove(); if (!list.children.length) list.remove();
+}
+function rtMergeLists() {
+  const el = rtEl();
+  [...el.children].forEach(c => {
+    const nx = c.nextElementSibling;
+    if (c.isConnected && nx && /^(UL|OL)$/.test(c.tagName) && nx.tagName === c.tagName && listKind(nx) === listKind(c)) { c.append(...nx.childNodes); nx.remove(); }
+  });
+}
+// turn lines into a bulleted / numbered / check list, or back into normal text
+function rtList(kind) {
+  rtEnsureBlocks();
+  const lines = rtLines(); if (!lines.length) return;
+  const off = lines.every(l => l.tagName === 'LI' && listKind(l.parentNode) === kind);
+  rtKeepCaret(() => {
+    let first = null;
+    for (const line of lines) {
+      if (off) {
+        const p = document.createElement('p'); p.append(...line.childNodes); if (!p.childNodes.length) p.append(document.createElement('br'));
+        rtSplitAround(line.parentNode, line, p); first ||= p;
+      } else {
+        const list = document.createElement(kind === 'ol' ? 'ol' : 'ul'); if (kind === 'check') list.className = 'checklist';
+        let li = line;
+        if (line.tagName === 'LI') { if (listKind(line.parentNode) === kind) { first ||= li; continue; } rtSplitAround(line.parentNode, line, list); }
+        else { li = document.createElement('li'); li.append(...line.childNodes); if (!li.childNodes.length) li.append(document.createElement('br')); line.replaceWith(list); }
+        list.append(li);
+        if (kind === 'check') li.dataset.checked = li.dataset.checked === 'true' ? 'true' : 'false'; else delete li.dataset.checked;
+        first ||= li;
+      }
+    }
+    rtMergeLists();
+    return first;
+  });
+}
+function rtLink() {
+  const text = rtRange ? rtRange.toString() : '';
+  let url = prompt('Link address (URL):', /^https?:\/\//.test(text) ? text : 'https://');
+  if (!url || url === 'https://') return;
+  url = url.trim(); if (!/^(https?:|mailto:)/i.test(url)) url = 'https://' + url;
+  rtFocus();
+  if (!text) rtExec('insertHTML', `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>&nbsp;`);
+  else { rtExec('createLink', url); rtEl().querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; }); }
+}
+// Docs-style shortcuts
+function rtKeys(e) {
+  const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+  if (mod && k === 'k') { e.preventDefault(); rtLink(); rtSave(); }
+  else if (mod && e.shiftKey && (k === '7' || k === '&')) { e.preventDefault(); rtCommand('insertOrderedList'); }
+  else if (mod && e.shiftKey && (k === '8' || k === '*')) { e.preventDefault(); rtCommand('insertUnorderedList'); }
+  else if (mod && e.shiftKey && (k === '9' || k === '(')) { e.preventDefault(); rtCommand('checklist'); }
+  else if (mod && e.altKey && /^[0-3]$/.test(e.code.slice(-1)) && /Digit|Numpad/.test(e.code)) {
+    e.preventDefault(); rtBlock(['p', 'h1', 'h2', 'h3'][+e.code.slice(-1)]);
+  }
+  else if (mod && k === '\\') { e.preventDefault(); rtCommand('removeFormat'); }
+  else if (e.altKey && e.shiftKey && e.code === 'Digit5') { e.preventDefault(); rtCommand('strikeThrough'); }
+  else if (mod && k === 'y') { e.preventDefault(); rtCommand('redo'); }
+  else if (e.key === 'Tab' && rtBlockEl()?.closest('li')) { e.preventDefault(); rtCommand(e.shiftKey ? 'outdent' : 'indent'); }
+}
+// typing "- ", "1. ", "[] ", "# ", "> " at the start of a line formats it (like Google Docs)
+function rtAutoFormat(e) {
+  if (e.inputType !== 'insertText' || e.data !== ' ') return;
+  const block = rtBlockEl(); if (!block || block.tagName === 'LI') return;
+  const sel = getSelection(), r = sel.getRangeAt(0), node = r.startContainer;
+  if (node.nodeType !== 3 || node !== block.firstChild) return;
+  const before = node.textContent.slice(0, r.startOffset).replace(/ /g, ' ');
+  const rules = [[/^[-*•] $/, () => rtList('ul')], [/^1[.)] $/, () => rtList('ol')], [/^\[ ?\] $/, () => rtList('check')],
+    [/^### $/, () => rtBlock('h3')], [/^## $/, () => rtBlock('h2')], [/^# $/, () => rtBlock('h1')], [/^> $/, () => rtBlock('blockquote')],
+    [/^---? $/, () => rtExec('insertHorizontalRule')]];
+  for (const [rx, fn] of rules) {
+    if (!rx.test(before)) continue;
+    node.textContent = node.textContent.slice(r.startOffset);
+    if (!node.textContent) block.append(document.createElement('br'));
+    const c = document.createRange(); c.setStart(node, 0); c.collapse(true); sel.removeAllRanges(); sel.addRange(c);
+    fn(); break;
+  }
+}
+// pasted or older content: a list or heading must never sit inside a paragraph
+function rtNormalize() {
+  const el = rtEl(); if (!el) return;
+  el.querySelectorAll('p').forEach(p => {
+    if (!p.isConnected || ![...p.children].some(c => /^(UL|OL|P|H1|H2|H3|BLOCKQUOTE|DIV|HR)$/.test(c.tagName))) return;
+    const frag = document.createDocumentFragment(); let run = null;
+    [...p.childNodes].forEach(c => {
+      if (c.nodeType === 1 && /^(UL|OL|P|H1|H2|H3|BLOCKQUOTE|DIV|HR)$/.test(c.tagName)) { run = null; frag.append(c); }
+      else { if (!run) { run = document.createElement('p'); frag.append(run); } run.append(c); }
+    });
+    [...frag.childNodes].forEach(c => { if (c.tagName === 'P' && !c.textContent.trim() && !c.querySelector('br')) c.remove(); });
+    p.replaceWith(frag);
+  });
+}
+// always type inside a paragraph (never loose text), so headings and lists format properly
+function rtEnsureBlocks() {
+  const el = rtEl(); if (!el) return;
+  if (!el.innerHTML.trim() || el.innerHTML === '<br>') { el.innerHTML = '<p><br></p>'; return; }
+  const loose = [...el.childNodes].filter(x => x.nodeType === 3 ? x.textContent.trim() : /^(B|I|U|S|SPAN|A|STRONG|EM|BR|MARK)$/.test(x.tagName));
+  if (!loose.length) return;
+  const sel = getSelection(), hadCaret = sel.rangeCount && el.contains(sel.anchorNode);
+  const p = document.createElement('p'); loose[0].before(p); loose.forEach(x => p.appendChild(x));
+  if (hadCaret) { const r = document.createRange(); r.selectNodeContents(p); r.collapse(false); sel.removeAllRanges(); sel.addRange(r); }
+}
+// keep the document neat: checklist items always have a state; new items start unchecked
+function rtTidy() {
+  const el = rtEl(); if (!el) return;
+  el.querySelectorAll('ul.checklist > li').forEach(li => {
+    if (li.dataset.checked !== 'true' && li.dataset.checked !== 'false') li.dataset.checked = 'false';
+    if (!li.textContent.trim() && li.dataset.checked === 'true') li.dataset.checked = 'false';
+  });
+  el.classList.toggle('is-empty', !el.textContent.trim() && !el.querySelector('li, hr'));
+}
+function rtPaste(e) {
+  const d = e.clipboardData; if (!d) return;
+  e.preventDefault();
+  const html = d.getData('text/html');
+  if (html) rtExec('insertHTML', cleanHtml(html.replace(/<!--[\s\S]*?-->/g, '')));
+  else rtExec('insertText', d.getData('text/plain'));
+  rtNormalize(); rtTidy(); rtSave();
+}
+function rtSave() {
+  const el = rtEl(), n = current(); if (!el || !n || n !== rtNote) return;
+  const html = el.innerHTML;
+  n.notesHtml = /^(<p>(<br>)?<\/p>)?$/.test(html.trim()) ? '' : html;   // an empty page saves as nothing
+  rtWords(); touch();
+}
+function rtWords() {
+  const el = rtEl(), w = $('wordCount'); if (!el || !w) return;
+  const words = (el.innerText || '').trim().split(/\s+/).filter(Boolean).length;
+  w.textContent = `${words} word${words === 1 ? '' : 's'}`;
+}
+// show which formatting is on where the cursor is
+function rtState() {
+  const tb = document.querySelector('.rt-toolbar'); if (!tb) return;
+  ['bold', 'italic', 'underline', 'strikeThrough', 'justifyLeft', 'justifyCenter', 'justifyRight'].forEach(c => {
+    let on = false; try { on = document.queryCommandState(c); } catch {}
+    tb.querySelector(`[data-cmd="${c}"]`)?.classList.toggle('on', on);
+  });
+  const li = rtBlockEl()?.closest('li'), kind = li ? listKind(li.parentNode) : '';
+  tb.querySelector('[data-cmd="insertUnorderedList"]')?.classList.toggle('on', kind === 'ul');
+  tb.querySelector('[data-cmd="insertOrderedList"]')?.classList.toggle('on', kind === 'ol');
+  tb.querySelector('[data-cmd="checklist"]')?.classList.toggle('on', kind === 'check');
+  const sel = $('blockStyle'); if (!sel) return;
+  const v = (rtBlockEl()?.tagName || 'p').toLowerCase();
+  const val = ['h1', 'h2', 'h3', 'blockquote'].includes(v) ? v : 'p';
+  if (sel.value !== val) { sel.value = val; syncSelect(sel); }
+}
 
 /* ---------- note actions (the ⋯ menu at the top of a note) ---------- */
 const NOTE_ACTIONS = [
@@ -1218,430 +1518,13 @@ function noteAction(what) {
 }
 
 function noteToText(n) {
-  const lines = [n.title || 'Untitled sermon', `${fmtDate(n.date)} (${n.period}) — ${n.eventType}${n.location ? ' @ ' + n.location : ''}`];
+  const lines = [n.title || 'Untitled sermon', `${fmtDate(n.date)} (${n.period}) — ${n.eventType}`];
+  if (n.scripture.trim()) lines.push('Scripture: ' + n.scripture.trim());
   const sp = n.speakers.filter(s => s.name.trim());
   if (sp.length) lines.push('Speakers: ' + sp.map(s => s.name + (s.role ? ` (${s.role})` : '')).join(', '));
-  if ((n.summary || '').trim()) lines.push('', 'SUMMARY', n.summary);
-  if (n.scriptures.trim()) lines.push('', 'SCRIPTURE', n.scriptures);
-  n.sections.forEach(s => { if (s.body.trim()) lines.push('', s.title.toUpperCase(), s.body); });
-  if (n.actions.trim()) lines.push('', 'ACTION STEPS', n.actions);
-  if (n.prayer.trim()) lines.push('', 'PRAYER POINTS', n.prayer);
-  if ((n.transcript || '').trim()) lines.push('', 'TRANSCRIPT', n.transcript);
+  const body = htmlToText(n.notesHtml);
+  if (body) lines.push('', body);
   return lines.join('\n');
-}
-
-/* ---------- Dictation ---------- */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, recording = false, recNoteId = null, recStart = 0, recTimer = null;
-let wakeLock = null, newPara = false, pendingSummary = false, recMsg = '', lastStart = 0, quickFails = 0, lastErr = '';
-
-function startDictation() {
-  const n = current(); if (!n || !SR) return;
-  const r = new SR();
-  // Android Chrome repeats words in continuous mode, so restart after each phrase there instead
-  r.continuous = !/Android/i.test(navigator.userAgent);
-  r.interimResults = true;
-  r.lang = navigator.language || 'en-US';
-  r.onresult = e => {
-    let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) { quickFails = 0; appendTranscript(e.results[i][0].transcript); pocketPhrase(e.results[i][0].transcript); }
-      else interim += e.results[i][0].transcript;
-    }
-    // every recognized word means someone is talking: push the visuals up
-    const grew = Math.max(0, interim.length - lastInterimLen); lastInterimLen = interim.length;
-    voiceKick(0.28 + Math.min(0.5, grew / 40));
-    const el = $('interim'); if (el) el.textContent = interim;
-    pocketInterim(interim);
-  };
-  r.onerror = e => {
-    // coming back from the background, some phones refuse to restart without a tap: pause instead of failing
-    if (e.error === 'not-allowed' && resumingAt && Date.now() - resumingAt < 3000) {
-      resumingAt = 0; recMsg = 'Dictation paused while your screen was off. Tap Start dictation to keep going.';
-      stopDictation(false); return;
-    }
-    const fatal = { 'not-allowed': 'Microphone access was blocked. Allow mic access for this site and try again.',
-      'service-not-allowed': 'Speech recognition is not allowed in this browser.',
-      'audio-capture': 'No microphone was found.' }[e.error];
-    lastErr = e.error;
-    if (fatal) { recMsg = fatal; stopDictation(false); }
-    // "no-speech", "network", "aborted" fall through to onend, which restarts
-  };
-  r.onend = () => {
-    if (rec !== r) return;
-    let problem = '';
-    if (recording && document.visibilityState === 'hidden') { bgSince ||= Date.now(); return; }   // wait until the app is back
-    if (recording) {
-      // the browser stops listening after pauses; start again, but give up if it keeps failing right away
-      quickFails = Date.now() - lastStart < 2000 ? quickFails + 1 : 0;
-      if (quickFails < 6) {
-        setTimeout(() => { if (recording && rec === r) try { lastStart = Date.now(); r.start(); } catch {} }, 250 + quickFails * 400);
-        return;
-      }
-      problem = lastErr === 'network' ? 'Dictation needs an internet connection. Check your signal, then tap Start dictation again.'
-        : 'Dictation keeps stopping. Tap Start dictation to try again.';
-      stopDictation(true);
-    }
-    const el = $('interim'); if (el) el.textContent = '';
-    if (pendingSummary) { pendingSummary = false; autoSummarize(); }
-    if (pendingFill) { pendingFill = false; finishAutoFill(); }
-    if (problem) { recMsg = problem; updateRecUI(); }
-  };
-  rec = r; recording = true; pendingSummary = false; pendingFill = false; liveCtx = newCtx(); recNoteId = n.id; recStart = Date.now(); recMsg = '';
-  newPara = !!(n.transcript || '').trim();
-  quickFails = 0; lastErr = ''; lastStart = Date.now();
-  try { r.start(); } catch (err) { recording = false; recMsg = 'Could not start dictation: ' + esc(err.message); }
-  keepAwake(); startVisuals();
-  clearInterval(recTimer); recTimer = setInterval(updateRecUI, 1000);
-  updateRecUI();
-}
-
-function stopDictation(summarize = true) {
-  if (!recording) return;
-  recording = false; clearInterval(recTimer);
-  pendingSummary = summarize && state.settings.autoSummary;
-  pendingFill = summarize && state.settings.autoFill;
-  try { rec.stop(); } catch {
-    if (pendingSummary) { pendingSummary = false; autoSummarize(); }
-    if (pendingFill) { pendingFill = false; finishAutoFill(); }
-  }
-  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-  updateRecUI();
-}
-
-async function keepAwake() {
-  try { if (recording && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
-}
-/* ---------- Live island: a Dynamic-Island-style status capsule while dictating ---------- */
-let islandTimer = 0;
-function syncIsland() {
-  let el = $('island');
-  const want = recording && !$('pocket');
-  if (!want) { if (el && !el.classList.contains('leaving')) { el.classList.add('leaving'); setTimeout(() => el.remove(), REDUCE ? 0 : 450); } return; }
-  if (!el || el.classList.contains('leaving')) {
-    el?.remove();
-    el = document.createElement('div'); el.id = 'island'; el.className = 'compact';
-    el.setAttribute('role', 'button'); el.setAttribute('aria-label', 'Dictation status. Tap for controls');
-    el.innerHTML = `<div class="is-row"><span class="is-eq"><i></i><i></i><i></i><i></i><i></i></span><span class="is-time">0:00</span><span class="is-dot"></span></div>
-      <div class="is-flash" aria-live="polite"></div>
-      <div class="is-more"><div class="is-words"></div>
-        <div class="is-actions"><button class="stop" data-is="stop">${ic('stop')}Stop</button><button data-is="pocket">${ic('moon')}Pocket</button></div></div>`;
-    el.addEventListener('click', e => {
-      const b = e.target.closest('[data-is]');
-      if (b) { e.stopPropagation(); if (b.dataset.is === 'stop') stopDictation(); else { islandMode('compact'); openPocket(); } return; }
-      islandMode(el.classList.contains('open') ? 'compact' : 'open');
-    });
-    document.body.appendChild(el);
-  }
-  const sec = Math.floor((Date.now() - recStart) / 1000);
-  el.querySelector('.is-time').textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
-  const n = state.notes.find(x => x.id === recNoteId), t = (n?.transcript || '').replace(/\[[^\]]*\]/g, '').trim();
-  el.querySelector('.is-words').textContent = t ? (t.length > 110 ? '…' + t.slice(-110) : t) : 'Listening for the first words…';
-}
-function islandMode(mode) {
-  const el = $('island'); if (!el) return;
-  clearTimeout(islandTimer);
-  el.classList.remove('open', 'flash', 'compact'); el.classList.add(mode);
-  if (mode === 'open') islandTimer = setTimeout(() => islandMode('compact'), 6000);
-}
-// like a Live Activity update: briefly expand to say what just happened
-function islandFlash(icon, text) {
-  const el = $('island'); if (!el || el.classList.contains('open')) return;
-  el.querySelector('.is-flash').innerHTML = ic(icon, 'draw-now') + ' ' + esc(text);
-  islandMode('flash'); islandTimer = setTimeout(() => islandMode('compact'), 2600);
-}
-document.addEventListener('pointerdown', e => { const el = $('island'); if (el?.classList.contains('open') && !el.contains(e.target)) islandMode('compact'); });
-
-/* Pocket mode: a black, touch-proof screen that stays awake so dictation keeps running */
-function openPocket() {
-  if ($('pocket')) return;
-  const el = document.createElement('div'); el.id = 'pocket'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Pocket mode');
-  el.innerHTML = `<canvas class="pk-canvas" aria-hidden="true"></canvas>
-    <div class="pk-inner">
-      <div class="pk-time"><span class="pk-dot"></span><span class="pk-clock"></span></div>
-      <div class="pk-wave-space"></div>
-      <div class="pk-caption" aria-live="polite"><div class="pk-lines"></div><div class="pk-interim"></div></div>
-    </div>
-    <div class="pk-hint">Keep the screen on, don't press the power button<br><b>Double-tap</b> or <b>press and hold</b> to return</div>
-    <div class="pk-hold"></div>`;
-  document.body.appendChild(el); syncIsland();
-  document.documentElement.requestFullscreen?.().catch(() => {});
-  keepAwake();
-  // seed the captions with the last thing said
-  const n = state.notes.find(x => x.id === recNoteId), last = splitSentences((n?.transcript || '')).slice(-2);
-  last.forEach(t => pocketPhrase(t, true));
-  let holdT = 0, lastTap = 0, hintT = 0;
-  const showHint = () => { el.classList.add('hint-on'); clearTimeout(hintT); hintT = setTimeout(() => el.classList.remove('hint-on'), 4000); };
-  showHint();
-  const exit = () => closePocket();
-  el.addEventListener('pointerdown', e => { e.preventDefault(); el.classList.add('holding'); holdT = setTimeout(exit, 900); });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => el.addEventListener(t, () => { el.classList.remove('holding'); clearTimeout(holdT); }));
-  el.addEventListener('click', () => { const now = Date.now(); if (now - lastTap < 400) exit(); else showHint(); lastTap = now; });
-  el.addEventListener('contextmenu', e => e.preventDefault());
-  // drift everything slowly so nothing burns into the screen
-  const drift = () => { el.querySelector('.pk-inner').style.transform = `translate(${(Math.random() - .5) * 40}px, ${(Math.random() - .5) * 70}px)`; };
-  el._drift = setInterval(drift, 15000);
-  sizePocketCanvas(); addEventListener('resize', sizePocketCanvas);
-  startVisuals(); updatePocket();
-}
-function sizePocketCanvas() {
-  const c = document.querySelector('#pocket .pk-canvas'); if (!c) return;
-  const d = Math.min(devicePixelRatio || 1, 2); c.width = innerWidth * d; c.height = innerHeight * d;
-  c.style.width = innerWidth + 'px'; c.style.height = innerHeight + 'px'; c.getContext('2d').setTransform(d, 0, 0, d, 0, 0);
-}
-// a finished phrase drifts in word by word; older lines float up and fade
-function pocketPhrase(text, instant = false) {
-  const box = document.querySelector('#pocket .pk-lines'); if (!box) return;
-  const words = String(text).trim().split(/\s+/).filter(Boolean); if (!words.length) return;
-  const line = document.createElement('div'); line.className = 'pk-line';
-  line.innerHTML = words.map((w, i) => `<span style="--d:${instant ? 0 : i * 70}ms">${esc(w)}</span>`).join(' ');
-  box.appendChild(line);
-  while (box.children.length > 3) box.firstElementChild.remove();
-  [...box.children].forEach((l, i, a) => l.dataset.age = a.length - 1 - i);
-  pocketInterim('');
-}
-function pocketInterim(t) { const el = document.querySelector('#pocket .pk-interim'); if (el) el.textContent = t; }
-function closePocket() {
-  const el = $('pocket'); if (!el) return;
-  clearInterval(el._drift); removeEventListener('resize', sizePocketCanvas);
-  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
-  el.classList.add('leaving'); setTimeout(() => { el.remove(); syncIsland(); }, REDUCE ? 0 : 350);
-}
-function updatePocket() {
-  const el = $('pocket'); if (!el) return;
-  const sec = Math.floor((Date.now() - recStart) / 1000);
-  el.classList.toggle('stopped', !recording);
-  if (recording) delete el.dataset.stopShown;
-  el.querySelector('.pk-clock').textContent = recording ? `Listening · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : 'Dictation stopped';
-  if (!recording && !el.dataset.stopShown) {
-    el.dataset.stopShown = 1;
-    pocketPhrase(recMsg.replace(/<[^>]+>/g, '').trim() || 'Double-tap to return to your notes');
-  }
-}
-
-/* ---------- Voice energy: drives the wave, glow and bars from what's being recognized ---------- */
-let vTarget = 0, vLevel = 0, lastInterimLen = 0, visRAF = 0, visT0 = 0, specks = [];
-function voiceKick(amount) { vTarget = Math.min(1, vTarget + amount); }
-function startVisuals() { if (!visRAF && !REDUCE) { visT0 = performance.now(); visRAF = requestAnimationFrame(visFrame); } }
-function visFrame(now) {
-  const pocket = $('pocket'), live = recording || pocket;
-  if (!live) { visRAF = 0; return; }
-  vTarget *= 0.965;                                   // talking fades out over about half a second of silence
-  vLevel += (vTarget - vLevel) * 0.08;                // smooth, springy follow
-  const t = (now - visT0) / 1000, level = recording ? vLevel : 0;
-  // little bars in the app and on the live island
-  document.querySelectorAll('#recStatus .eq i, #island .is-eq i').forEach((b, i) => {
-    const wob = 0.5 + 0.5 * Math.sin(t * (5 + i * 1.7) + i * 1.3);
-    b.style.animation = 'none';
-    b.style.transform = `scaleY(${(0.18 + 0.12 * Math.sin(t * 1.6 + i) + level * (0.35 + 0.55 * wob)).toFixed(3)})`;
-  });
-  if (pocket) drawPocket(pocket, t, level);
-  visRAF = requestAnimationFrame(visFrame);
-}
-function drawPocket(pocket, t, level) {
-  const c = pocket.querySelector('.pk-canvas'); if (!c) return;
-  const g = c.getContext('2d'), W = innerWidth, H = innerHeight, cy = H * 0.5;
-  g.clearRect(0, 0, W, H);
-  const stopped = !recording;
-  // soft glow that breathes with the voice
-  const breathe = 0.5 + 0.5 * Math.sin(t * 0.9);
-  const glowR = Math.min(W, H) * (0.32 + level * 0.18 + breathe * 0.03);
-  const grad = g.createRadialGradient(W / 2, cy, 0, W / 2, cy, glowR);
-  grad.addColorStop(0, stopped ? 'rgba(179,38,30,.10)' : `rgba(230,232,238,${0.035 + level * 0.07})`);
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = grad; g.fillRect(0, 0, W, H);
-  // faint specks of light rising slowly
-  if (!specks.length) specks = Array.from({ length: 26 }, () => ({ x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.4, v: .004 + Math.random() * .012, a: .05 + Math.random() * .12, p: Math.random() * 6 }));
-  specks.forEach(s => {
-    s.y -= s.v * (0.4 + level) / 60; if (s.y < -0.02) { s.y = 1.02; s.x = Math.random(); }
-    g.globalAlpha = s.a * (0.6 + 0.4 * Math.sin(t * 1.3 + s.p));
-    g.fillStyle = '#E6E8EE'; g.beginPath(); g.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2); g.fill();
-  });
-  g.globalAlpha = 1;
-  // three flowing waves: calm breathing when quiet, swelling while someone talks
-  const amp = stopped ? 1.5 : 5 + 4 * breathe + level * Math.min(58, H * 0.07);
-  const layers = [
-    { k: 1.0, f: 1.6, sp: 1.3, w: 2.2, c: stopped ? 'rgba(179,38,30,.55)' : `rgba(230,232,238,${0.45 + level * 0.4})` },
-    { k: 0.7, f: 2.4, sp: -1.0, w: 1.6, c: stopped ? 'rgba(179,38,30,.3)' : 'rgba(90,96,112,.75)' },
-    { k: 0.45, f: 3.3, sp: 2.1, w: 1.2, c: stopped ? 'rgba(179,38,30,.18)' : `rgba(230,232,238,${0.12 + level * 0.18})` }];
-  layers.forEach(L => {
-    g.beginPath(); g.lineWidth = L.w; g.strokeStyle = L.c; g.lineCap = 'round';
-    for (let x = 0; x <= W; x += 4) {
-      const u = x / W, edge = Math.sin(Math.PI * u) ** 1.6;   // taper to the edges
-      const y = cy + edge * amp * L.k * (Math.sin(u * Math.PI * 2 * L.f + t * L.sp) + 0.35 * Math.sin(u * Math.PI * 7 - t * L.sp * 1.7));
-      x ? g.lineTo(x, y) : g.moveTo(x, y);
-    }
-    g.stroke();
-  });
-}
-
-let bgSince = 0, resumingAt = 0;
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') { if (recording) bgSince ||= Date.now(); return; }
-  if (!recording) return;
-  keepAwake();
-  const since = bgSince; bgSince = 0;
-  if (!since || Date.now() - since < 1500) return;          // a quick glance away: nothing was missed
-  markGap(since, Date.now());
-  // restart listening (it was stopped by the phone while the app was hidden)
-  quickFails = 0; lastErr = ''; resumingAt = lastStart = Date.now(); newPara = true;
-  try { rec.start(); } catch {}
-  const away = fmtDur(Date.now() - since);
-  // only say "listening again" once the phone has actually let it restart
-  setTimeout(() => { if (recording) islandFlash('check', 'Listening again'); }, 1300);
-  setTimeout(() => { if (recording) toast(`Welcome back. Dictation paused for ${away} while the app was in the background, and is listening again.`, 4500); }, 1200);
-});
-const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const fmtDur = ms => { const m = Math.round(ms / 60000); return m < 1 ? `${Math.round(ms / 1000)} seconds` : `${m} minute${m > 1 ? 's' : ''}`; };
-function markGap(a, b) {
-  const n = state.notes.find(x => x.id === recNoteId); if (!n) return;
-  n.transcript = (n.transcript || '').trimEnd() + `\n\n[Dictation paused ${fmtTime(a)} – ${fmtTime(b)} while the app was in the background]`;
-  if (n.id === currentId) { const ta = document.querySelector('[data-f="transcript"]'); if (ta) { ta.value = n.transcript; grow(ta); } }
-  touch();
-}
-
-function appendTranscript(text) {
-  const n = state.notes.find(x => x.id === recNoteId); if (!n) return;
-  let t = text.trim(); if (!t) return;
-  t = t[0].toUpperCase() + t.slice(1);
-  if (!/[.!?]$/.test(t)) t += '.';
-  const cur = (n.transcript || '').trimEnd();
-  n.transcript = cur ? cur + (newPara ? '\n\n' : ' ') + t : t;
-  newPara = false;
-  if (state.settings.autoFill) splitSentences(t).forEach(x => routeSentence(n, x, liveCtx));
-  if (n.id === currentId) {
-    const ta = document.querySelector('[data-f="transcript"]');
-    if (ta) { ta.value = n.transcript; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
-    renderSumExtras();
-  }
-  touch();
-}
-
-function updateRecUI() {
-  const btn = $('recBtn'), st = $('recStatus');
-  if ($('pocketBtn')) $('pocketBtn').hidden = !recording;
-  updatePocket(); syncIsland();
-  if (btn && btn.dataset.state !== String(recording)) {
-    btn.dataset.state = String(recording);
-    btn.classList.toggle('recording', recording);
-    btn.innerHTML = recording ? ic('stop') + 'Stop dictation' : ic('mic') + 'Start dictation';
-  }
-  if (!st) return;
-  if (recording && recNoteId === currentId) {
-    if (!st.querySelector('.eq')) st.innerHTML = '<span class="eq"><i></i><i></i><i></i><i></i><i></i></span><span class="t"></span>';
-    const sec = Math.floor((Date.now() - recStart) / 1000);
-    st.querySelector('.t').textContent = `Listening… ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
-  } else if (st.dataset.msg !== recMsg || st.querySelector('.eq')) { st.dataset.msg = recMsg; st.innerHTML = recMsg; }
-}
-
-/* ---------- Summary (runs entirely on this device) ---------- */
-const STOP = new Set(`a an the and or but if then so of to in on at by for with from as is are was were be been being it its
-this that these those i you he she we they me him her us them my your his our their what which who whom whose when where why
-how all any both each few more most other some such no nor not only own same than too very can will just do does did done have
-has had having would could should may might must shall am im ive youre youve dont didnt doesnt cant wont isnt arent gonna wanna
-going go goes get got gets say said says let lets thing things know like yeah okay ok oh um uh really there here up down out
-about into over again also because while one two three come came make made want see way well now right even back still every
-something someone somebody anything everything thats theres whats hes shes theyre were weve ill youll whatever ever many much
-little lot lots big kind sort mean means gotta morning evening tonight afternoon week everybody everyone`.split(/\s+/));
-const COMMON = new Set(['god', 'lord', 'jesus', 'christ', 'people', 'church', 'today', 'amen']);
-const CUES = /\b(the point is|main point|my point|remember|don'?t miss|key|i want you to|here'?s the thing|in conclusion|take ?away|the bible says|scripture says|word says|god wants|we must|we need to|you need to|the truth is|listen|that'?s why|the lesson)\b/i;
-
-const BOOKS = `genesis|exodus|leviticus|numbers|deuteronomy|joshua|judges|ruth|samuel|kings|chronicles|ezra|nehemiah|esther|job|psalms?|proverbs|ecclesiastes|song of solomon|song of songs|isaiah|jeremiah|lamentations|ezekiel|daniel|hosea|joel|amos|obadiah|jonah|micah|nahum|habakkuk|zephaniah|haggai|zechariah|malachi|matthew|mark|luke|john|acts|romans|corinthians|galatians|ephesians|philippians|colossians|thessalonians|timothy|titus|philemon|hebrews|james|peter|jude|revelation`;
-const REF_RE = new RegExp(String.raw`\b(?:(1|2|3|1st|2nd|3rd|first|second|third)\s+)?(${BOOKS})\s+(chapter\s+)?(\d{1,3})(?:(?:\s*:\s*|\s+verses?\s+)(\d{1,3})(?:\s*(?:-|–|\s+to\s+|\s+through\s+)\s*(\d{1,3}))?)?`, 'gi');
-const AMBIG = new Set(['numbers', 'job', 'mark', 'acts', 'james', 'john', 'jude', 'ruth', 'amos', 'joel', 'daniel', 'titus', 'peter', 'kings', 'judges']);
-const ORD = { first: 1, '1st': 1, second: 2, '2nd': 2, third: 3, '3rd': 3 };
-
-function findScriptures(text) {
-  const out = [];
-  for (const m of (text || '').matchAll(REF_RE)) {
-    const [, pre, book, chapWord, ch, v, v2] = m;
-    if (!v && !chapWord && AMBIG.has(book.toLowerCase())) continue; // "mark 5" in speech is often not a reference
-    let name = book.toLowerCase().replace(/^psalms$/, 'psalm').replace(/\b[a-z]/g, c => c.toUpperCase()).replace(' Of ', ' of ');
-    if (pre) name = (ORD[pre.toLowerCase()] || pre) + ' ' + name;
-    const ref = `${name} ${ch}${v ? ':' + v : ''}${v && v2 ? '-' + v2 : ''}`;
-    if (!out.includes(ref)) out.push(ref);
-  }
-  return out;
-}
-
-function splitSentences(text) {
-  const out = [];
-  (text.replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+|$)/g) || []).forEach(s => {
-    const w = s.trim().split(' ').filter(Boolean);
-    for (let i = 0; i < w.length; i += 30) out.push(w.slice(i, i + 30).join(' ')); // dictation often lacks punctuation
-  });
-  return out.filter(Boolean);
-}
-
-function summarize(text) {
-  const { themes, refs, picked } = analyze(text);
-  const out = [];
-  if (themes.length) out.push('Key themes: ' + themes.join(', '));
-  if (refs.length) out.push('Scriptures mentioned: ' + refs.join('; '));
-  if (out.length) out.push('');
-  out.push('Main points:', ...picked.map(p => '• ' + p.s));
-  return out.join('\n');
-}
-function analyze(text) {
-  const sents = splitSentences(text);
-  const words = s => (s.toLowerCase().match(/[a-z']+/g) || []).map(w => w.replace(/'s$/, '').replace(/'/g, ''));
-  // light stemming so "trust", "trusted", "trusting" count together; show the shortest form
-  const stem = w => w.length > 5 ? w.replace(/(ing|ed|es|s)$/, '') : w.replace(/s$/, '');
-  const shown = {};
-  const content = s => words(s).filter(w => w.length > 2 && !STOP.has(w)).map(w => {
-    const st = stem(w); if (!shown[st] || w.length < shown[st].length) shown[st] = w; return st; });
-  const freq = {};
-  sents.forEach(s => content(s).forEach(w => freq[w] = (freq[w] || 0) + 1));
-  const max = Math.max(1, ...Object.values(freq));
-  const scored = sents.map((s, i) => {
-    const ws = content(s);
-    if (words(s).length < 5 || !ws.length) return { s, i, score: 0 };
-    let score = ws.reduce((a, w) => a + freq[w] / max, 0) / Math.sqrt(ws.length);
-    if (CUES.test(s)) score *= 1.6;
-    if (findScriptures(s).length) score *= 1.3;
-    if (i < sents.length * 0.1 || i >= sents.length * 0.9) score *= 1.15;
-    return { s, i, score };
-  });
-  const k = Math.min(7, Math.max(3, Math.round(sents.length * 0.2)));
-  const picked = sents.length <= k ? scored
-    : [...scored].sort((a, b) => b.score - a.score).slice(0, k).filter(p => p.score > 0).sort((a, b) => a.i - b.i);
-  const themes = Object.entries(freq).filter(([w, c]) => c > 1 && !COMMON.has(shown[w]))
-    .sort((a, b) => b[1] - a[1]).slice(0, 6).map(([w]) => shown[w]);
-  return { themes, refs: findScriptures(text), picked };
-}
-
-function makeSummary(n) {
-  n.summary = summarize(n.transcript || '');
-  n.summaryEdited = false;
-  recMsg = ic('sparkle', 'draw-now') + ' Summary updated';
-  touch();
-  if (n.id === currentId) {
-    const ta = document.querySelector('[data-f="summary"]');
-    if (ta) typeInto(ta, n.summary);
-    const w = $('sumWrap'); if (w && !REDUCE) { w.classList.remove('shine'); void w.offsetWidth; w.classList.add('shine'); }
-    seedBurst($('sumBtn'));
-  }
-  updateRecUI();
-}
-
-function autoSummarize() {
-  const n = state.notes.find(x => x.id === recNoteId);
-  if (!n || !(n.transcript || '').trim()) return;
-  if (n.summaryEdited && (n.summary || '').trim()) { recMsg = 'Kept your edited summary. Tap Summarize to regenerate it.'; updateRecUI(); return; }
-  makeSummary(n);
-}
-
-function missingRefs(n) {
-  const have = (n.scriptures || '').toLowerCase().replace(/\s+/g, ' ');
-  return findScriptures(n.transcript).filter(r => !have.includes(r.toLowerCase()));
-}
-function renderSumExtras() {
-  const el = $('sumExtras'), n = current(); if (!el || !n) return;
-  const m = missingRefs(n), key = m.join('|');
-  if (el.dataset.key === key && el.dataset.note === n.id) return;
-  el.dataset.key = key; el.dataset.note = n.id;
-  el.innerHTML = m.length ? `<button id="addRefs">${ic('bookmark')}Add to references</button>
-    <span class="saved">${esc(m.join('; '))}</span>` : '';
 }
 
 /* ---------- Manage lists ---------- */
@@ -1703,187 +1586,9 @@ $('importFile').onchange = async e => {
   e.target.value = '';
 };
 
-
-/* ---------- Auto-fill: send what's said to the right part of the note ---------- */
-let pendingFill = false, liveCtx = null;
-const newCtx = () => ({ reading: null, quoteNext: false, counts: {} });
-const TITLE_WORDS = 'pastor|bishop|elder|reverend|rev\\.?|brother|sister|dr\\.?|doctor|minister|evangelist|apostle|prophet|prophetess|deacon|deaconess|mother|father|overseer|chaplain';
-const RX = {
-  prayer: /\b(let us pray|let'?s pray|pray (for|that|with|over|about)|we pray|i pray|bow (your|our) heads|prayer (request|for|list)|lift (them|him|her|it|this|that|us|up) (up )?(in|to the lord in) prayer|(father|lord|god),? (we|i) (ask|thank|come|pray)|in jesus'? name)\b/i,
-  action: /\b(this week|i challenge you|i want you to (go|start|take|make|write|call|find|read|spend|ask|forgive|serve)|your (homework|assignment)|go (and|home and)|take (time|a moment|some time) to|start (today|tonight|tomorrow|this)|make (a|it a) (commitment|point|decision)|commit to|apply this|step (one|two|three|1|2|3)|first step|next step|before next (sunday|week)|every (day|morning|night) this)\b/i,
-  quoteCue: /\b(write (this|that) down|say (it|this) with me|tell your neighbou?r|turn to (your|somebody|someone) and say|if you (remember|forget) (nothing|anything) else|don'?t miss this|catch this|listen to (me|this)|hear me|here'?s the (truth|thing|key))\b/i,
-  title: /(?:title of (?:my|the|today'?s|this(?: morning'?s| evening'?s)?) (?:message|sermon|word) is|(?:message|sermon|word) (?:today |tonight |this morning )?is (?:titled|called|entitled)|i(?:'ve| have)? (?:titled|called|entitled|named) (?:this|the|today'?s|my) (?:message|sermon))\s*[:,]?\s*["“]?([^.!?"”]{3,70})/i,
-  speaker: new RegExp(`(?:welcome|introduce|introducing|give it up for|receive|please welcome|our (?:speaker|preacher|guest) (?:today|this morning|tonight|this evening) is|my name is|i'?m|i am)\\s+(?:our\\s+(?:own\\s+)?|the\\s+)?((?:${TITLE_WORDS})\\s+[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)?)`, 'i'),
-  readCue: /\b(it says|it reads|says|reads|read with me|declares|tells us)\b[:,]?\s*$/i,
-  // things said between announcing a verse and reading it
-  filler: /\b(amen|when you (have|get|got|find) (it|there)|say (amen|done|got it|i got it)|turn (with me )?to|let'?s (read|look)|stand( with me)?|if you (have|got) your bibles?|are you there|page \d+|in your bibles?|you can be seated)\b/i,
-  titleStop: /\s+(and|so|because|but|turn|if|today|tonight|this morning|this evening|let'?s|i want|we'?re going)\b.*$/i
-};
-const NOT_NAMES = new Set(['to', 'the', 'in', 'of', 'and', 'for', 'with', 'our', 'my', 'is', 'this', 'that', 'here', 'up', 'on', 'at',
-  'a', 'an', 'lord', 'god', 'jesus', 'christ', 'church', 'family', 'everybody', 'everyone', 'back', 'again', 'today']);
-const norm = x => (x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-const has = (field, line) => norm(field).includes(norm(line));
-const titleCase = x => x.trim().replace(/\s+/g, ' ').replace(/\b([a-z])([a-z']*)/gi, (m, a, b, i) =>
-  (i > 0 && /^(a|an|the|of|in|on|and|or|to|for|by|at|with)$/i.test(m)) ? m.toLowerCase() : a.toUpperCase() + b.toLowerCase());
-const count = (ctx, k) => ctx.counts[k] = (ctx.counts[k] || 0) + 1;
-
-function routeSentence(n, sent, ctx) {
-  const s = sent.trim(); if (!s) return;
-  const changed = new Set();
-  // the verse being read right after a reference was announced
-  if (ctx.reading) {
-    if (findScriptures(s).length) ctx.reading = null;
-    else if (RX.filler.test(s) && (ctx.wait = (ctx.wait || 0) + 1) <= 3) { /* still waiting for the reading */ }
-    else {
-      if (s.split(/\s+/).length >= 3 && attachReading(n, ctx.reading, s)) { changed.add('scriptures'); count(ctx, 'readings'); }
-      ctx.reading = null;
-    }
-  }
-  // a quote announced by "write this down" etc. is the next sentence
-  if (ctx.quoteNext) { ctx.quoteNext = false; if (addToSection(n, /quote/i, 'Key Quotes', '“' + s.replace(/[.]$/, '') + '”')) { changed.add('sec:quote'); count(ctx, 'quotes'); } }
-
-  // scripture references (+ the words that follow them, if any)
-  for (const m of (s).matchAll(REF_RE)) {
-    const ref = findScriptures(m[0])[0]; if (!ref) continue;
-    if (addLine(n, 'scriptures', ref)) { changed.add('scriptures'); count(ctx, 'scriptures'); }
-    const after = s.slice(m.index + m[0].length).replace(/^[\s,:;-]+/, '');
-    const rest = after.replace(RX.readCue, '').replace(/^(it says|says|reads|it reads)\s*[:,]?\s*/i, '');
-    if (rest.split(/\s+/).filter(Boolean).length >= 4 && !findScriptures(rest).length) {
-      if (attachReading(n, ref, rest)) { changed.add('scriptures'); count(ctx, 'readings'); }
-    } else { ctx.reading = ref; ctx.wait = 0; }   // the reading usually comes next
-  }
-  // sermon title
-  const tm = !n.title.trim() && s.match(RX.title);
-  const tt = tm && tm[1].replace(RX.titleStop, '').split(/\s+/).slice(0, 9).join(' ');
-  if (tt && tt.length >= 3) { n.title = titleCase(tt); changed.add('title'); count(ctx, 'title'); }
-  // speaker introductions
-  // speech recognition capitalizes real names, so require capitals after the title word
-  const sm = s.match(RX.speaker);
-  const nameWords = sm ? sm[1].split(/\s+/) : [];
-  let keep = 1; while (keep < nameWords.length && /^[A-Z]/.test(nameWords[keep]) && !NOT_NAMES.has(nameWords[keep].toLowerCase())) keep++;
-  if (sm && keep > 1) {
-    const name = titleCase(nameWords.slice(0, keep).join(' ').replace(/\brev\b\.?/i, 'Reverend').replace(/\bdr\b\.?/i, 'Dr.'));
-    if (!n.speakers.some(x => norm(x.name) === norm(name))) {
-      const word = name.split(' ')[0];
-      const role = /^(Brother|Sister|Dr\.|Doctor|Mother|Father)$/.test(word) ? 'Guest Speaker' : word;
-      const empty = n.speakers.find(x => !x.name.trim());
-      if (empty) { empty.name = name; empty.role = empty.role || role; } else n.speakers.push({ name, role });
-      rememberSpeaker(name);
-      changed.add('speakers'); count(ctx, 'speakers');
-    }
-  }
-  // prayer > action > quote (one home per sentence)
-  if (RX.prayer.test(s)) { if (addLine(n, 'prayer', '• ' + s)) { changed.add('prayer'); count(ctx, 'prayer'); } }
-  else if (RX.action.test(s)) { if (addLine(n, 'actions', '• ' + s)) { changed.add('actions'); count(ctx, 'actions'); } }
-  else if (RX.quoteCue.test(s)) {
-    const body = s.replace(RX.quoteCue, '').replace(/^[\s,:;.!-]+/, '').trim();
-    if (body.split(/\s+/).length >= 5) { if (addToSection(n, /quote/i, 'Key Quotes', '“' + body.replace(/[.]$/, '') + '”')) { changed.add('sec:quote'); count(ctx, 'quotes'); } }
-    else ctx.quoteNext = true;
-  }
-  if (changed.size) showFilled(n, changed);
-}
-
-function rerenderKeepFocus() {
-  const a = document.activeElement, d = a?.dataset || {};
-  const key = d.f ? `[data-f="${d.f}"]`
-    : d.sec ? `.section[data-i="${a.closest('.section').dataset.i}"] [data-sec="${d.sec}"]`
-    : d.s ? `.speaker-row[data-i="${a.closest('.speaker-row').dataset.i}"] [data-s="${d.s}"]` : null;
-  const sel = key && 'selectionStart' in a ? [a.selectionStart, a.selectionEnd] : null;
-  renderEditor();
-  const el = key && document.querySelector(key);
-  if (el) { el.focus({ preventScroll: true }); if (sel) try { el.setSelectionRange(...sel); } catch {} }
-}
-function addLine(n, field, line) {
-  if (has(n[field], line.replace(/^• /, ''))) return false;
-  n[field] = ((n[field] || '').trimEnd() ? n[field].trimEnd() + '\n' : '') + line;
-  return true;
-}
-function attachReading(n, ref, text) {
-  const lines = (n.scriptures || '').split('\n'), i = lines.findIndex(l => l.trim().toLowerCase() === ref.toLowerCase());
-  if (i < 0) return false;
-  const t = text.trim().replace(/[.]$/, '');
-  lines[i] = `${ref} — “${t[0].toUpperCase() + t.slice(1)}”`; n.scriptures = lines.join('\n');
-  return true;
-}
-function addToSection(n, rx, fallbackTitle, line) {
-  let sec = n.sections.find(x => rx.test(x.title));
-  if (!sec) { sec = { id: uid(), title: fallbackTitle, body: '' }; n.sections.push(sec); sec._new = true; }
-  if (has(sec.body, line.replace(/[“”]/g, ''))) return false;
-  sec.body = (sec.body.trimEnd() ? sec.body.trimEnd() + '\n' : '') + line;
-  return true;
-}
-
-// at the end: main points + anything that only makes sense with the whole transcript
-function finishAutoFill() {
-  const n = state.notes.find(x => x.id === recNoteId); if (!n || !(n.transcript || '').trim()) return;
-  const ctx = liveCtx || newCtx(); ctx.reading = null; ctx.quoteNext = false;
-  splitSentences(n.transcript).forEach(x => routeSentence(n, x, ctx));
-  let added = 0;
-  analyze(n.transcript).picked.forEach(p => { if (addToSection(n, /main point|point/i, 'Main Points', '• ' + p.s)) added++; });
-  if (added) { ctx.counts.points = (ctx.counts.points || 0) + added; showFilled(n, new Set(['sec:point'])); }
-  const c = ctx.counts, parts = [['scriptures', 'scripture'], ['readings', 'reading'], ['points', 'main point'], ['quotes', 'quote'],
-    ['actions', 'action step'], ['prayer', 'prayer point'], ['speakers', 'speaker'], ['title', 'title']]
-    .filter(([k]) => c[k]).map(([k, w]) => `${c[k]} ${w}${c[k] > 1 ? 's' : ''}`);
-  if (parts.length) { recMsg = (recMsg ? recMsg + ' · ' : '') + ic('check', 'draw-now') + ' Filled in ' + parts.join(', '); updateRecUI(); }
-  liveCtx = newCtx();
-}
-
-// update the page in place and fly a little chip from the transcript to each spot that changed
-function showFilled(n, changed) {
-  touch();
-  if (n.id !== currentId) return;
-  if ([...changed].some(k => k === 'speakers') || n.sections.some(x => x._new)) {
-    n.sections.forEach(x => delete x._new);
-    rerenderKeepFocus();
-  }
-  const from = document.querySelector('[data-f="transcript"]');
-  const spots = { scriptures: ['[data-f="scriptures"]', 'book', 'Scripture'], prayer: ['[data-f="prayer"]', 'candle', 'Prayer'],
-    actions: ['[data-f="actions"]', 'flag', 'Action step'], title: ['.title-input', 'quill', 'Title'], speakers: ['.c-speak', 'lectern', 'Speaker'],
-    'sec:quote': [n => `.section[data-i="${n.sections.findIndex(x => /quote/i.test(x.title))}"] textarea`, 'quill', 'Quote'],
-    'sec:point': [n => `.section[data-i="${n.sections.findIndex(x => /main point|point/i.test(x.title))}"] textarea`, 'quill', 'Main points'] };
-  const FLASH = { scriptures: ['book', 'Added to Scripture'], prayer: ['candle', 'Prayer point added'], actions: ['flag', 'Action step added'],
-    title: ['quill', 'Title filled in'], speakers: ['lectern', 'Speaker added'], 'sec:quote': ['quill', 'Quote saved'], 'sec:point': ['quill', 'Main points added'] };
-  const first = [...changed][0];
-  if (FLASH[first]) {
-    let msg = FLASH[first][1];
-    if (first === 'scriptures') { const last = (n.scriptures || '').trim().split('\n').pop().split(' — ')[0]; if (last) msg = `${last} added to Scripture`; }
-    islandFlash(FLASH[first][0], msg);
-  }
-  let k = 0;
-  changed.forEach(key => {
-    const [sel, icon, label] = spots[key] || []; if (!sel) return;
-    const el = document.querySelector(typeof sel === 'function' ? sel(n) : sel); if (!el) return;
-    // sync the field's text without moving the cursor if the user is typing there
-    if (el.matches('textarea, input')) {
-      const val = key === 'title' ? n.title : key.startsWith('sec:') ? n.sections[+el.closest('.section').dataset.i].body : n[key];
-      if (el.value !== val) {
-        const a = el.selectionStart, b = el.selectionEnd, focused = document.activeElement === el;
-        el.value = val; if (el.tagName === 'TEXTAREA') grow(el);
-        if (focused) el.setSelectionRange(a, b);
-      }
-    }
-    setTimeout(() => flyTo(from, el, icon, label), (k++) * 140);
-  });
-  renderSumExtras();
-}
-function flyTo(from, to, icon, label) {
-  if (!from || !to) return;
-  if (REDUCE) return play(to, 'tap-land', 700);
-  const r = from.getBoundingClientRect(), t = to.getBoundingClientRect();
-  if (t.bottom < 0 || t.top > innerHeight) return play(to, 'tap-land', 700);  // off screen: just pulse it
-  const chip = document.createElement('div'), c = getComputedStyle(to.closest('.card') || to).getPropertyValue('--c') || '#14161C';
-  chip.className = 'fly-chip'; chip.style.background = c; chip.innerHTML = ic(icon) + ' ' + esc(label);
-  const x0 = r.left + r.width / 2, y0 = r.top + 16, x1 = t.left + 30, y1 = t.top + 12;
-  chip.style.left = x0 + 'px'; chip.style.top = y0 + 'px'; document.body.appendChild(chip);
-  chip.animate([
-    { transform: 'translate(-50%,-50%) scale(.6)', opacity: 0 },
-    { transform: `translate(calc(-50% + ${(x1 - x0) * .5}px), calc(-50% + ${(y1 - y0) * .5 - 70}px)) scale(1.05) rotate(-3deg)`, opacity: 1, offset: .45 },
-    { transform: `translate(calc(-50% + ${x1 - x0}px), calc(-50% + ${y1 - y0}px)) scale(.7)`, opacity: 0 }
-  ], { duration: 900, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => { chip.remove(); play(to, 'tap-land', 700); };
-}
 /* ---------- Custom dropdowns: each one opens with its own animation ---------- */
 const ROLES = ['Pastor', 'Guest Speaker', 'Evangelist', 'Youth Pastor', 'Elder', 'Deacon', 'Worship Leader', 'Minister', 'Teacher'];
-const DD_VARIANT = { filterEvent: 'leaves', filterSpeaker: 'fan', filterPeriod: 'horizon', sortBy: 'flip', eventType: 'scroll' };
+const DD_VARIANT = { filterEvent: 'leaves', filterSpeaker: 'fan', filterPeriod: 'horizon', sortBy: 'flip', eventType: 'scroll', blockStyle: 'type' };
 let PANEL = null;   // the one open dropdown list: { el, anchor, items, active, onPick, variant }
 
 function openPanel(anchor, items, variant, onPick, selected = -1, quick = false) {
@@ -1894,7 +1599,7 @@ function openPanel(anchor, items, variant, onPick, selected = -1, quick = false)
   el.setAttribute('role', 'listbox');
   el.innerHTML = items.map((it, i) => `<li role="option" id="ddo-${i}" data-i="${i}" style="--i:${Math.min(i, 12)}"
       class="${i === selected ? 'sel' : ''}${it.value === '__new' ? ' add' : ''}${it.value === 'delete' ? ' danger' : ''}" aria-selected="${i === selected}">
-      <span>${it.icon ? ic(it.icon) : ''}${esc(it.label)}</span>${i === selected ? ic('check', 'draw-now') : ''}</li>`).join('');
+      <span>${it.swatch ? `<i class="sw" style="background:${it.swatch}"></i>` : ''}${it.icon ? ic(it.icon) : ''}${esc(it.label)}</span>${i === selected ? ic('check', 'draw-now') : ''}</li>`).join('');
   if (!reuse) document.body.appendChild(el);
   PANEL = { el, anchor, items, active: selected, onPick, variant };
   placePanel(); setActive(selected);
@@ -1956,7 +1661,7 @@ function enhanceSelects() {
     wrap.appendChild(btn); syncSelect(sel);
   });
 }
-const DD_NAMES = { filterEvent: 'Filter by event type', filterSpeaker: 'Filter by speaker', filterPeriod: 'Filter by AM or PM', sortBy: 'Sort notes', eventType: 'Event type' };
+const DD_NAMES = { blockStyle: 'Text style', filterEvent: 'Filter by event type', filterSpeaker: 'Filter by speaker', filterPeriod: 'Filter by AM or PM', sortBy: 'Sort notes', eventType: 'Event type' };
 function syncSelect(sel) {
   const lab = sel.closest('.dd')?.querySelector('.dd-label'); if (!lab) return;
   const t = sel.selectedOptions[0]?.text || '';
@@ -1970,7 +1675,8 @@ function openSelect(btn) {
     sel.value = it.value; syncSelect(sel);
     const lab = btn.querySelector('.dd-label'); play(lab, 'swap-in', 500);
     sel.dispatchEvent(new Event('input', { bubbles: true })); sel.dispatchEvent(new Event('change', { bubbles: true }));
-    btn.isConnected && btn.focus();
+    if (sel.id === 'blockStyle') rtFocus();          // keep typing right where you were in your notes
+    else if (btn.isConnected) btn.focus();
   }, sel.selectedIndex);
 }
 document.addEventListener('click', e => {
@@ -2020,14 +1726,8 @@ const TAPS = [
   ['#menuBtn', () => $('menuBtn'), 'tap-wobble'],
   ['#manageBtn', () => $('manageBtn'), 'tap-sliders'],
   ['#newBtn', () => $('newBtn'), 'tap-jelly'],
-  ['#sumBtn', () => $('sumBtn'), 'tap-sheen'],
   ['#addSpeaker', () => $('addSpeaker'), 'tap-spring'],
-  ['#addSection', () => $('addSection'), 'tap-unfold'],
-  ['[data-move$=":-1"]', b => document.querySelector(`[data-move="${b.dataset.move}"]`), 'tap-shoot-up'],
-  ['[data-move$=":1"]', b => document.querySelector(`[data-move="${b.dataset.move}"]`), 'tap-shoot-down'],
   ['[data-del-speaker]', null, 'tap-spin-out'],
-  ['[data-del-section]', null, 'tap-shake'],
-  ['#addRefs', null, 'tap-bookmark'],
   ['#addSpeakerBtn, #addEventBtn', null, 'tap-stamp'],
   ['#noteMenuBtn', () => $('noteMenuBtn'), 'tap-dots'],
   ['#exportBtn', null, 'tap-drop'],
@@ -2037,38 +1737,27 @@ const TAPS = [
   ['.logo', null, 'tap-halo'],
   ['.note-item', b => document.querySelector(`.note-item[data-id="${b.dataset.id}"]`), 'tap-page'],
 ];
-let tapRect = null;
-document.addEventListener('click', e => {   // capture: remember where the tap happened before handlers re-render
-  const t = e.target.closest('#addRefs'); tapRect = t ? { r: t.getBoundingClientRect(), text: missingRefs(current() || {}).join('; ') } : null;
-}, true);
+// each formatting button moves its own way
+const TOOL_TAP = { bold: 'tap-bold', italic: 'tap-italic', underline: 'tap-underline', strikeThrough: 'tap-strike', undo: 'tap-undo', redo: 'tap-redo',
+  color: 'tap-swatch', highlight: 'tap-marker', insertUnorderedList: 'tap-list', insertOrderedList: 'tap-list', checklist: 'tap-tick',
+  justifyLeft: 'tap-al', justifyCenter: 'tap-ac', justifyRight: 'tap-ar', indent: 'tap-in', outdent: 'tap-out',
+  link: 'tap-linkspin', insertHorizontalRule: 'tap-hr', removeFormat: 'tap-erase' };
 document.addEventListener('click', e => {
+  const tool = e.target.closest('.rt-toolbar [data-cmd]');
+  if (tool) { play(tool, TOOL_TAP[tool.dataset.cmd] || 'tap-squish', 700); return; }
   for (const [sel, refind, cls] of TAPS) {
     const hit = e.target.closest(sel); if (!hit) continue;
     const el = hit.isConnected ? hit : refind && refind(hit);
     play(el, cls, 900);
-    if (sel === '#addRefs' && tapRect) flyRefs(tapRect);
     break;
   }
-  if (e.target.closest('#recBtn')) play($('recBtn'), recording ? 'tap-rings' : 'tap-squash', 1100);
 });
+// formatting buttons must not take the cursor out of the notes
+document.addEventListener('mousedown', e => { if (e.target.closest('.rt-toolbar button')) e.preventDefault(); });
 document.addEventListener('change', e => {
   if (e.target.matches('[data-f="date"]')) play(e.target, 'tap-flip', 800);
   if (e.target.matches('label.check input')) play(e.target.closest('label'), 'tap-check', 700);
 });
-
-// "Add to references": the verse flies up into the Scripture card
-function flyRefs({ r, text }) {
-  const target = document.querySelector('[data-f="scriptures"]'); if (!target || REDUCE || !text) return;
-  const t = target.getBoundingClientRect(), chip = document.createElement('div');
-  chip.className = 'fly-chip'; chip.innerHTML = ic('book') + ' ' + esc(text); document.body.appendChild(chip);
-  const dx = t.left + 20 - r.left, dy = t.top + 14 - r.top;
-  chip.style.left = r.left + 'px'; chip.style.top = r.top + 'px';
-  chip.animate([
-    { transform: 'translate(0,0) scale(1)', opacity: 1 },
-    { transform: `translate(${dx * .5}px, ${dy * .5 - 90}px) scale(1.08) rotate(-4deg)`, opacity: 1, offset: .5 },
-    { transform: `translate(${dx}px, ${dy}px) scale(.7)`, opacity: 0 }
-  ], { duration: 850, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => { chip.remove(); play(target, 'tap-land', 700); };
-}
 
 // welcome button: let it sprout for a moment before the first note opens
 function startFirst(btn) { if (btn.disabled) return; btn.disabled = true; seedBurst(btn); play(btn, 'tap-sprout', 900); setTimeout(newNote, REDUCE ? 0 : 420); }
@@ -2124,7 +1813,6 @@ if (storageProblem) setTimeout(() => toast('This browser is blocking storage, so
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost'))
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 function render() {
-  if (recording && recNoteId !== currentId) stopDictation();
   renderFilters(); renderList(); renderEditor(); }
 render();
 </script>
